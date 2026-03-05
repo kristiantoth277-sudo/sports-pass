@@ -28,13 +28,13 @@ export default function Menu() {
           onClick={() => setIsZoomed(true)}
         >
           <img 
-            src="/menu.jpg" 
+            src="/images/zaramia_pizza2.jpg" 
             alt="Zaramia Menu"
             className="w-full h-auto block"
             onError={(e) => {
               // Fallback if image doesn't exist
               const target = e.target as HTMLImageElement;
-              target.src = "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=1200";
+              target.src = "/menu.jpg";
             }}
           />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
@@ -66,12 +66,12 @@ export default function Menu() {
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0.9 }}
-              src="/menu.jpg" 
+              src="/images/zaramia_pizza2.jpg" 
               alt="Zaramia Menu Fullscreen"
               className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
               onError={(e) => {
                 const target = e.target as HTMLImageElement;
-                target.src = "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=1200";
+                target.src = "/menu.jpg";
               }}
             />
           </motion.div>

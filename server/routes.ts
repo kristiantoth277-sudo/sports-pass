@@ -165,8 +165,8 @@ async function seedDatabase() {
     // Badminton Courts
     await storage.createFacility({
       name: "Badminton – Kurt 1",
-      description: "Profesionálny bedmintonový kurt č. 1 v Bowl center s.r.o.",
-      imageUrl: "/images/badminton1.jpg",
+      description: "Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.",
+      imageUrl: "/images/zaramia_hall.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "1",
@@ -175,7 +175,7 @@ async function seedDatabase() {
 
     await storage.createFacility({
       name: "Badminton – Kurt 2",
-      description: "Profesionálny bedmintonový kurt č. 2 v Bowl center s.r.o.",
+      description: "Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.",
       imageUrl: "/images/badminton2.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
@@ -185,8 +185,8 @@ async function seedDatabase() {
 
     await storage.createFacility({
       name: "Badminton – Kurt 3",
-      description: "Profesionálny bedmintonový kurt č. 3 v Bowl center s.r.o.",
-      imageUrl: "/images/badminton1.jpg",
+      description: "Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.",
+      imageUrl: "/images/zaramia_hall.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "3",

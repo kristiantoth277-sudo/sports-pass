@@ -32,11 +32,12 @@ export default function Home() {
               <Activity className="w-4 h-4" />
               <span className="text-sm font-bold tracking-widest uppercase">Zaramia Sport & Fun</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white leading-[1.1] mb-6 tracking-tight">
-              BOWL CENTER <span className="text-red-600">S.R.O.</span>
+            <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white leading-[1.1] mb-6 tracking-tight uppercase">
+              ZARAMIA <span className="text-red-600">PIZZA</span> <br/>
+              SPORT <span className="text-red-600">&</span> FUN
             </h1>
             <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-              Profesionálne športoviská a skvelá zábava v srdci mesta. Rezervujte si svoj čas ešte dnes.
+              Miesto plné zážitkov pre všetkých. Vychutnajte si skvelú pizzu, športové aktivity a nezabudnuteľnú zábavu v srdci Rimavskej Soboty.
             </p>
           </motion.div>
         </div>
@@ -66,7 +67,7 @@ export default function Home() {
                 className="relative block group aspect-square rounded-[2rem] overflow-hidden border-2 border-white/5 bg-zinc-900 transition-all duration-500 hover:border-red-600/50 hover:shadow-[0_0_40px_-10px_rgba(220,38,38,0.3)] hover:-translate-y-2"
               >
                 <img 
-                  src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=800" 
+                  src="/images/zaramia_pizza1.jpg" 
                   alt="Menu"
                   className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700"
                 />
