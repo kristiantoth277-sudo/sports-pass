@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, Facebook } from "lucide-react";
+import { LogOut, Facebook, Instagram } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -52,6 +52,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 title="Facebook"
               >
                 <Facebook className="w-5 h-5" />
+              </a>
+              <a
+                href="https://www.instagram.com/zaramiapizzasportfun/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-[#E1306C] transition-colors"
+                title="Instagram"
+              >
+                <Instagram className="w-5 h-5" />
               </a>
             </nav>
 

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useFacilities } from "@/hooks/use-facilities";
-import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook } from "lucide-react";
+import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook, Instagram } from "lucide-react";
 
 const BRAND_GREEN = "#1e8c2a";
 const BRAND_RED = "#cc1a1a";
@@ -91,6 +91,15 @@ export default function Home() {
               >
                 <Facebook className="w-5 h-5 text-[#1877F2]" />
                 <span>Facebook</span>
+              </a>
+              <a
+                href="https://www.instagram.com/zaramiapizzasportfun/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center gap-2"
+              >
+                <Instagram className="w-5 h-5 text-[#E1306C]" />
+                <span>Instagram</span>
               </a>
             </div>
           </motion.div>
