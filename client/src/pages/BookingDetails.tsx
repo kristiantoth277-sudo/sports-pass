@@ -27,15 +27,19 @@ export default function BookingDetails() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("payment") === "return" && id) {
-      verifyPayment();
+      const transactionId = params.get("transactionId");
+      verifyPayment(transactionId || undefined);
     }
   }, [id]);
 
-  const verifyPayment = async () => {
+  const verifyPayment = async (transactionId?: string) => {
     setVerifying(true);
     setPayError(null);
     try {
-      const res = await fetch(`/api/bookings/${id}/besteron-verify`, { credentials: "include" });
+      const url = transactionId
+        ? `/api/bookings/${id}/besteron-verify?transactionId=${encodeURIComponent(transactionId)}`
+        : `/api/bookings/${id}/besteron-verify`;
+      const res = await fetch(url, { credentials: "include" });
       const data = await res.json();
 
       if (data.status === "paid") {

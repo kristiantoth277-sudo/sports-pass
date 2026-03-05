@@ -8,7 +8,46 @@ import crypto from "crypto";
 
 const BESTERON_API_KEY = process.env.BESTERON_API_KEY!;
 const BESTERON_MERCHANT_ID = process.env.BESTERON_MERCHANT_ID!;
-const BESTERON_API_URL = "https://api.besteron.com/v1";
+const BESTERON_GATE_URL = "https://gate.besteron.com/api";
+const BESTERON_PASSIVE_URL = "https://passive.besteron.com/api";
+
+async function getBesteronGateToken(): Promise<string> {
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: BESTERON_MERCHANT_ID,
+    client_secret: BESTERON_API_KEY,
+  });
+  const res = await fetch(`${BESTERON_GATE_URL}/oauth2/token`, {
+    method: "POST",
+    headers: { "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Besteron gate token error (${res.status}): ${txt}`);
+  }
+  const data: any = await res.json();
+  return data.access_token;
+}
+
+async function getBesteronPassiveToken(): Promise<string> {
+  const body = new URLSearchParams({
+    grant_type: "client_credentials",
+    client_id: BESTERON_MERCHANT_ID,
+    client_secret: BESTERON_API_KEY,
+  });
+  const res = await fetch(`${BESTERON_PASSIVE_URL}/oauth2/token`, {
+    method: "POST",
+    headers: { "Accept": "application/json", "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+  });
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(`Besteron passive token error (${res.status}): ${txt}`);
+  }
+  const data: any = await res.json();
+  return data.access_token;
+}
 
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "zaramia2024";
 const ENABLE_SHELLY = process.env.ENABLE_SHELLY === "true";
@@ -120,21 +159,25 @@ export async function registerRoutes(
     const returnUrl = `${appUrl}/bookings/${id}?payment=return`;
 
     try {
+      const token = await getBesteronGateToken();
+
       const payload = {
-        merchantId: BESTERON_MERCHANT_ID,
-        amount: booking.totalPrice, // in cents
-        currency: "EUR",
-        orderId: `ZARAMIA-${id}-${Date.now()}`,
+        totalAmount: booking.totalPrice,
+        currencyCode: "EUR",
+        orderNumber: `ZARAMIA-${id}-${Date.now()}`,
         description: `Zaramia rezervácia: ${facility?.name || 'Šport'}`,
-        returnUrl,
         language: "SK",
+        callback: {
+          returnUrl,
+        },
       };
 
-      const response = await fetch(`${BESTERON_API_URL}/payment-intent`, {
+      const response = await fetch(`${BESTERON_GATE_URL}/payment-intent`, {
         method: "POST",
         headers: {
+          "Accept": "application/json",
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${BESTERON_API_KEY}`,
+          "Authorization": `Bearer ${token}`,
         },
         body: JSON.stringify(payload),
       });
@@ -146,19 +189,19 @@ export async function registerRoutes(
       }
 
       const data: any = await response.json();
-      const paymentIntentId = data.paymentIntentId || data.id;
+      const transactionId = data.transactionId;
       const redirectUrl = data.redirectUrl;
 
       if (!redirectUrl) {
         return res.status(502).json({ message: "Besteron nevrátil redirectUrl" });
       }
 
-      await storage.updateBookingPaymentId(id, paymentIntentId);
+      await storage.updateBookingPaymentId(id, transactionId);
 
       res.json({ redirectUrl });
     } catch (err: any) {
       console.error("Besteron fetch error:", err);
-      res.status(500).json({ message: "Chyba pri komunikácii s Besteron" });
+      res.status(500).json({ message: "Chyba pri komunikácii s Besteron", detail: err.message });
     }
   });
 
@@ -181,14 +224,27 @@ export async function registerRoutes(
       return res.json({ status: 'paid', qrCodeData: booking.qrCodeData });
     }
 
-    if (!booking.besteronPaymentId) {
+    // Besteron sends transactionId as query param on redirect — save it if present
+    const transactionIdFromUrl = req.query.transactionId as string | undefined;
+    if (transactionIdFromUrl && !booking.besteronPaymentId) {
+      await storage.updateBookingPaymentId(id, transactionIdFromUrl);
+      booking.besteronPaymentId = transactionIdFromUrl;
+    }
+
+    const transactionId = booking.besteronPaymentId || transactionIdFromUrl;
+    if (!transactionId) {
       return res.status(400).json({ message: "Platba nebola inicializovaná" });
     }
 
     try {
-      const response = await fetch(`${BESTERON_API_URL}/payment-information/${booking.besteronPaymentId}`, {
+      const token = await getBesteronPassiveToken();
+
+      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents/${transactionId}`, {
+        method: "POST",
         headers: {
-          "Authorization": `Bearer ${BESTERON_API_KEY}`,
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
       });
 
@@ -199,21 +255,21 @@ export async function registerRoutes(
       }
 
       const data: any = await response.json();
-      // Besteron statuses: PAID, PENDING, FAILED, CANCELLED
-      const besteronStatus = (data.status || data.paymentStatus || '').toUpperCase();
+      // Besteron statuses: Created, WaitingForConfirmation, Completed, Canceled, Timeouted, Error, Invalid
+      const besteronStatus: string = data.transaction?.status || data.status || '';
 
-      if (besteronStatus === 'PAID' || besteronStatus === 'COMPLETED' || besteronStatus === 'SUCCESS') {
+      if (besteronStatus === 'Completed') {
         const qrData = `ZARAMIA_BOOKING_${id}_${crypto.randomBytes(8).toString('hex')}`;
         await storage.updateBookingStatus(id, 'paid', qrData);
         return res.json({ status: 'paid', qrCodeData: qrData });
-      } else if (besteronStatus === 'FAILED' || besteronStatus === 'CANCELLED') {
-        return res.json({ status: 'failed' });
+      } else if (['Canceled', 'Timeouted', 'Error', 'Invalid'].includes(besteronStatus)) {
+        return res.json({ status: 'failed', besteronStatus });
       } else {
-        return res.json({ status: 'pending' });
+        return res.json({ status: 'pending', besteronStatus });
       }
     } catch (err: any) {
       console.error("Besteron verify fetch error:", err);
-      res.status(500).json({ message: "Chyba pri overovaní platby" });
+      res.status(500).json({ message: "Chyba pri overovaní platby", detail: err.message });
     }
   });
 
