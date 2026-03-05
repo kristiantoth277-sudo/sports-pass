@@ -396,6 +396,24 @@ export async function registerRoutes(
 
   app.get("/api/admin/ping", isAdmin, (_req, res) => res.json({ ok: true }));
 
+  app.post("/api/admin/test-email", isAdmin, async (_req, res) => {
+    try {
+      await sendBookingNotification({
+        id: 9999,
+        facilityName: "Test – Badminton Kurt 1",
+        sportType: "badminton",
+        startTime: new Date(),
+        endTime: new Date(Date.now() + 3600000),
+        totalPrice: 1250,
+        userName: "Test zákazník",
+        userEmail: "test@example.com",
+      });
+      res.json({ ok: true, message: "Testovací email odoslaný" });
+    } catch (err: any) {
+      res.status(500).json({ ok: false, message: err.message });
+    }
+  });
+
   app.post("/api/admin/facilities/:id/set-available", isAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID" });

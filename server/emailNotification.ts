@@ -63,7 +63,7 @@ export async function sendBookingNotification(booking: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "ZaraMia <notifikacia@play.zaramia.sk>",
+        from: "ZaraMia <onboarding@resend.dev>",
         to: [NOTIFY_EMAIL],
         subject: `Nová rezervácia #${booking.id} – ${booking.facilityName}`,
         html: htmlBody,
