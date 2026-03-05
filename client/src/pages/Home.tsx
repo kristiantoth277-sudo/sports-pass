@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useFacilities } from "@/hooks/use-facilities";
-import { MapPin, Trophy, ArrowRight, Activity, Loader2, Utensils, Beer } from "lucide-react";
+import { MapPin, Trophy, ArrowRight, Activity, Loader2, Utensils, Beer, Facebook } from "lucide-react";
 
 export default function Home() {
   const { data: facilities, isLoading, error } = useFacilities();
@@ -40,6 +40,22 @@ export default function Home() {
             <p className="text-lg md:text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed">
               Miesto plné zážitkov pre všetkých. Vychutnajte si skvelú pizzu, športové aktivity a nezabudnuteľnú zábavu v srdci Rimavskej Soboty.
             </p>
+            <div className="flex flex-wrap justify-center gap-4 mb-10">
+              <Link href="/menu">
+                <button className="px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-red-600 text-white hover:bg-red-700 transition-all shadow-[0_0_30px_rgba(220,38,38,0.3)]">
+                  Zobraziť Menu
+                </button>
+              </Link>
+              <a 
+                href="https://www.facebook.com/pizzazaramia/?locale=sk_SK" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-all flex items-center space-x-2"
+              >
+                <Facebook className="w-5 h-5 text-[#1877F2]" />
+                <span>Facebook</span>
+              </a>
+            </div>
           </motion.div>
         </div>
       </section>

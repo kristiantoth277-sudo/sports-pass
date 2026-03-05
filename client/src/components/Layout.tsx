@@ -1,7 +1,7 @@
 import { Link, useLocation } from "wouter";
 import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { Activity, Calendar, LayoutDashboard, LogIn, LogOut, Settings } from "lucide-react";
+import { Activity, Calendar, LayoutDashboard, LogIn, LogOut, Settings, Facebook } from "lucide-react";
 import { useState } from "react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
@@ -37,6 +37,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
               <Link href="/admin" className={cn("text-sm font-black uppercase tracking-widest transition-colors hover:text-red-600", location === "/admin" ? "text-red-600" : "text-gray-500")}>
                 Admin
               </Link>
+              <a 
+                href="https://www.facebook.com/pizzazaramia/?locale=sk_SK" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-gray-500 hover:text-[#1877F2] transition-colors"
+                title="Facebook"
+              >
+                <Facebook className="w-5 h-5" />
+              </a>
             </nav>
 
             <div className="flex items-center space-x-6">
