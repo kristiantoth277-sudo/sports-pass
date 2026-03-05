@@ -5,12 +5,20 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 
+// Components & Pages
+import { Layout } from "@/components/Layout";
+import Home from "@/pages/Home";
+import FacilityDetails from "@/pages/FacilityDetails";
+import MyBookings from "@/pages/MyBookings";
+import BookingDetails from "@/pages/BookingDetails";
+
 function Router() {
   return (
     <Switch>
-      {/* Add pages below */}
-      {/* <Route path="/" component={Home}/> */}
-      {/* Fallback to 404 */}
+      <Route path="/" component={Home} />
+      <Route path="/facilities/:id" component={FacilityDetails} />
+      <Route path="/bookings" component={MyBookings} />
+      <Route path="/bookings/:id" component={BookingDetails} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -20,8 +28,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        <Layout>
+          <Router />
+        </Layout>
         <Toaster />
-        <Router />
       </TooltipProvider>
     </QueryClientProvider>
   );
