@@ -1,4 +1,4 @@
-const NOTIFY_EMAIL = "objednavky@najryba.sk";
+const NOTIFY_EMAIL = "kristian.toth277@gmail.com";
 
 function formatTime(date: Date): string {
   return date.toLocaleString("sk-SK", {
