@@ -11,6 +11,7 @@ export default function Home() {
       case 'pizza': return <Utensils className="w-8 h-8 text-primary" />;
       case 'bar': return <Beer className="w-8 h-8 text-primary" />;
       case 'menu': return <Utensils className="w-8 h-8 text-primary" />;
+      case 'vr': return <Activity className="w-8 h-8 text-primary" />;
       default: return <Activity className="w-8 h-8 text-primary" />;
     }
   };

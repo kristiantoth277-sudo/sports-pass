@@ -224,5 +224,16 @@ async function seedDatabase() {
       courtNumber: "1",
       isComingSoon: true,
     });
+
+    // VR Zone
+    await storage.createFacility({
+      name: "VR Zóna – Meta Quest 3",
+      description: "Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok. Čoskoro k dispozícii!",
+      imageUrl: "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 0,
+      sportType: "vr",
+      courtNumber: "1",
+      isComingSoon: true,
+    });
   }
 }
