@@ -56,6 +56,9 @@ export const insertBookingSchema = createInsertSchema(bookings).omit({
   status: true, 
   qrCodeData: true,
   userId: true 
+}).extend({
+  startTime: z.coerce.date(),
+  endTime: z.coerce.date(),
 });
 
 export type Facility = typeof facilities.$inferSelect;

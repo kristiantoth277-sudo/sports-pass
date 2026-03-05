@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { useFacilities } from "@/hooks/use-facilities";
 import { useCreateBooking } from "@/hooks/use-bookings";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
 
 const BRAND_GREEN = "#1e8c2a";
 const BRAND_RED = "#cc1a1a";
@@ -14,6 +15,7 @@ export default function FacilityDetails() {
   const { id } = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
   
   const { data: facilities, isLoading: isLoadingFacilities } = useFacilities();
   const createBooking = useCreateBooking();
@@ -70,6 +72,13 @@ export default function FacilityDetails() {
     }, {
       onSuccess: (newBooking) => {
         setLocation(`/bookings/${newBooking.id}`);
+      },
+      onError: (err) => {
+        toast({
+          title: "Chyba pri rezervácii",
+          description: err.message || "Rezerváciu sa nepodarilo vytvoriť. Skúste to znova.",
+          variant: "destructive",
+        });
       }
     });
   };
