@@ -9,6 +9,7 @@ import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replit_integrations/auth/replitAuth";
 import { registerAuthRoutes } from "./replit_integrations/auth/routes";
 import crypto from "crypto";
+import { sendBookingNotification } from "./emailNotification";
 
 const BESTERON_API_KEY = process.env.BESTERON_API_KEY!;
 const BESTERON_MERCHANT_ID = process.env.BESTERON_MERCHANT_ID!;
@@ -161,6 +162,19 @@ export async function registerRoutes(
         userId,
         status: "reserved"
       });
+
+      // Send email notification (non-blocking)
+      const userClaims = (req as any).user?.claims;
+      sendBookingNotification({
+        id: newBooking.id,
+        facilityName: facility?.name ?? `Zariadenie #${parsedBody.facilityId}`,
+        sportType: facility?.sportType ?? "badminton",
+        startTime: new Date(newBooking.startTime),
+        endTime: new Date(newBooking.endTime),
+        totalPrice: newBooking.totalPrice,
+        userName: userClaims?.name ?? userClaims?.email ?? undefined,
+        userEmail: userClaims?.email ?? undefined,
+      }).catch(err => console.error("[Email] notification failed:", err));
 
       res.status(201).json(newBooking);
     } catch (err) {
