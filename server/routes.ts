@@ -353,6 +353,30 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get("/api/admin/besteron-check/:transactionId", isAdmin, async (req, res) => {
+    const { transactionId } = req.params;
+    try {
+      let token: string;
+      try {
+        token = await getBesteronPassiveToken();
+      } catch {
+        token = await getBesteronGateToken();
+      }
+      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents/${transactionId}`, {
+        method: "POST",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+      const text = await response.text();
+      res.json({ httpStatus: response.status, body: text });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  });
+
   app.post("/api/admin/bookings/:id/mark-paid", isAuthenticated, isAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID rezervácie" });
