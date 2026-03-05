@@ -40,6 +40,14 @@ Slovak PWA sports booking app for **Bowl center s.r.o.** branded as **Zaramia Pi
 - `bookings`: id, userId, facilityId, startTime, endTime, status, qrCodeData, totalPrice (cents), besteronPaymentId
 - `shellySettings`: id, key, value
 
+## Email Notifications
+- Email notification for new bookings to `objednavky@najryba.sk` is implemented in `server/emailNotification.ts`
+- Uses Resend API (`https://api.resend.com/emails`)
+- Requires `RESEND_API_KEY` secret to be set (user dismissed Resend integration — must provide key manually)
+- Also requires a verified sender domain in Resend — `from` is set to `notifikacia@play.zaramia.sk`
+- Without `RESEND_API_KEY`, notifications are silently skipped (non-blocking)
+- NOTE: Do NOT use the Resend Replit integration connector — user dismissed it. Ask for `RESEND_API_KEY` secret directly.
+
 ## Important Notes
 - Price format: always use `.toFixed(2).replace('.', ',')` for Slovak number format (12,50 €)
 - Stripe was explicitly declined by the user — do NOT add Stripe
