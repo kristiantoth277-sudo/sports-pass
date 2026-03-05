@@ -10,6 +10,7 @@ export default function Home() {
     switch (type) {
       case 'pizza': return <Utensils className="w-8 h-8 text-primary" />;
       case 'bar': return <Beer className="w-8 h-8 text-primary" />;
+      case 'menu': return <Utensils className="w-8 h-8 text-primary" />;
       default: return <Activity className="w-8 h-8 text-primary" />;
     }
   };
@@ -54,6 +55,38 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Custom Menu Tile */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Link 
+                href="/menu"
+                className="relative block group aspect-square rounded-[2rem] overflow-hidden border-2 border-white/5 bg-zinc-900 transition-all duration-500 hover:border-red-600/50 hover:shadow-[0_0_40px_-10px_rgba(220,38,38,0.3)] hover:-translate-y-2"
+              >
+                <img 
+                  src="https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=800" 
+                  alt="Menu"
+                  className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                
+                <div className="absolute inset-0 p-8 flex flex-col justify-end">
+                  <div className="mb-4 bg-white/10 backdrop-blur-xl w-16 h-16 rounded-2xl flex items-center justify-center border border-white/10">
+                    <Utensils className="w-8 h-8 text-red-600" />
+                  </div>
+                  <h3 className="text-3xl font-display font-black text-white mb-2 tracking-tight uppercase">
+                    🍕 Menu
+                  </h3>
+                  <div className="flex items-center justify-between">
+                    <p className="text-gray-400 font-bold tracking-wide">ZOBRAZIŤ PONUKU</p>
+                    <ArrowRight className="w-6 h-6 text-red-600 transform group-hover:translate-x-2 transition-transform" />
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+
             {facilities?.filter(f => !f.courtNumber || f.courtNumber === '1').map((facility, index) => (
               <motion.div
                 key={facility.id}
