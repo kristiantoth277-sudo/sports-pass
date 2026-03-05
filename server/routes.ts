@@ -262,16 +262,22 @@ export async function registerRoutes(
     }
 
     try {
-      const token = await getBesteronPassiveToken();
+      // Try passive token first; fall back to gate token if passive credentials aren't configured
+      let token: string;
+      try {
+        token = await getBesteronPassiveToken();
+      } catch (tokenErr: any) {
+        console.warn("Passive token failed, falling back to gate token:", tokenErr.message);
+        token = await getBesteronGateToken();
+      }
 
-      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents`, {
+      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents/${transactionId}`, {
         method: "POST",
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
-        body: JSON.stringify({ transactionId }),
       });
 
       if (!response.ok) {

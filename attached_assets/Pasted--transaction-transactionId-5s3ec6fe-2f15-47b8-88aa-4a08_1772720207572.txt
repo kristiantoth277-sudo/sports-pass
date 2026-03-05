@@ -1,0 +1,97 @@
+{
+  "transaction": {
+    "transactionId": "5s3ec6fe-2f15-47b8-88aa-4a08b2egb8dd",
+    "createdAt": "2022-01-01T05:15:55.646792Z",
+    "variableSymbol": "1234567890",
+    "specificSymbol": "1234567890",
+    "updatedAt": "2022-01-01T05:15:55.646792Z",
+    "status": "Created",
+    "selectedPaymentMethod": "TATRSKBX",
+    "recurringTransactionId": null,
+    "paymentIntent" {
+      "orderNumber": "Order number",
+      "totalAmount": 10,
+      "description": "Description",
+      "onBehalfOf": null,
+      "validityTime": 60,
+      "currencyCode": "EUR",
+      "language": "SK",
+      "callback": {
+        "returnUrl": "https://besteron.sk/",
+        "notificationUrl": "https://besteron.sk/"
+      },
+      "buyer": {
+        "firstName": "Account",
+        "lastName": "Besteron",
+        "email": "account@besteron.sk",
+        "phone": "+421 999555333",
+        "delivery": {
+          "postalCode": "564 67",
+          "city": "Bratislava",
+          "countrySubdivisionCode": "SK-BL",
+          "countryCode": "SK",
+          "recipient": {
+            "firstName": "Account",
+            "lastName": "Besteron",
+            "email": "account@besteron.sk",
+            "phone": "+421 999555333"
+          },
+          "streetLines": [
+            "Street 1",
+            "Street 2"
+          ]
+        },
+        "billing": {
+          "firstName": "Account",
+          "lastName": "Besteron",
+          "email": null,
+          "phone": null,
+          "postalCode": "564 67",
+          "city": "Bratislava",
+          "countrySubdivisionCode": "SK-BL",
+          "countryCode": "SK",
+          "streetLines": [
+            "Street 1",
+            "Street 2"
+          ]
+        }
+      },
+    },
+    "paymentMethods": [
+      "CARD",
+      "TATRSKBX",
+      "SUBASKBX",
+      "UNCRSKBX"
+    ],
+    "additionalParams": [
+      {
+        "name": "Param1",
+        "value": "Value 1"
+      },
+      {
+        "name": "Param2",
+        "value": "Value 2"
+      }
+    ],
+    "items": [
+      {
+        "name": "Item 0",
+        "amount": 6,
+        "count": 1,
+        "vatRate": 20,
+        "ean": "ITEM1234",
+        "productUrl": "https://besteron.sk/",
+        "type": "ITEM"
+      },
+      {
+        "name": "Item 1",
+        "amount": 2,
+        "count": 2,
+        "vatRate": 20,
+        "ean": "ITEM1234",
+        "productUrl": "https://besteron.sk/",
+        "type": "ITEM"
+      }
+    ]
+  }
+}
