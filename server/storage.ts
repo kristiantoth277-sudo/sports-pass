@@ -14,6 +14,7 @@ export interface IStorage {
   getBooking(id: number): Promise<any | undefined>;
   createBooking(booking: InsertBooking & { userId: string }): Promise<Booking>;
   updateBookingStatus(id: number, status: string, qrCodeData?: string): Promise<Booking | undefined>;
+  getAllBookings(): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -79,6 +80,19 @@ export class DatabaseStorage implements IStorage {
       .where(eq(bookings.id, id))
       .returning();
     return updatedBooking;
+  }
+
+  async getAllBookings(): Promise<any[]> {
+    return await db
+      .select({
+        booking: bookings,
+        facility: facilities,
+        user: users,
+      })
+      .from(bookings)
+      .leftJoin(facilities, eq(bookings.facilityId, facilities.id))
+      .leftJoin(users, eq(bookings.userId, users.id))
+      .orderBy(desc(bookings.startTime));
   }
 }
 

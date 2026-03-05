@@ -24,11 +24,11 @@ export default function Home() {
               <span className="text-sm font-bold tracking-wide uppercase">Premium Sports Venues</span>
             </div>
             <h1 className="text-5xl md:text-7xl font-display font-extrabold text-white leading-[1.1] mb-6">
-              Find your <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-300 text-glow">ARENA</span>.<br />
-              Dominate the game.
+              Nájdite svoju <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-cyan-300 text-glow">ARÉNU</span>.<br />
+              Zaramia Sport & Fun.
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-10 max-w-2xl leading-relaxed">
-              Book top-tier sports facilities instantly. Secure your spot, grab your QR access code, and focus on what matters most — your performance.
+              Rezervujte si športoviská okamžite. Zabezpečte si svoje miesto, získajte QR kód a sústreďte sa na hru.
             </p>
           </motion.div>
         </div>
@@ -39,8 +39,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12">
             <div>
-              <h2 className="text-3xl font-display font-bold text-white mb-2">Available Courts</h2>
-              <p className="text-muted-foreground">Select a facility to view availability and book.</p>
+              <h2 className="text-3xl font-display font-bold text-white mb-2">Dostupné športoviská</h2>
+              <p className="text-muted-foreground">Vyberte si športovisko pre zobrazenie dostupnosti a rezerváciu.</p>
             </div>
           </div>
 

@@ -12,7 +12,8 @@ export const facilities = pgTable("facilities", {
   description: text("description").notNull(),
   imageUrl: text("image_url"),
   pricePerHour: integer("price_per_hour").notNull(), // in cents
-  sportType: text("sport_type").notNull(), // e.g., 'tennis', 'basketball', 'football'
+  sportType: text("sport_type").notNull(), // e.g., 'badminton', 'bowling', 'table_tennis'
+  courtNumber: text("court_number"), // e.g., 'Kurt 1', 'Kurt 2'
 });
 
 export const bookings = pgTable("bookings", {
@@ -23,6 +24,7 @@ export const bookings = pgTable("bookings", {
   endTime: timestamp("end_time").notNull(),
   status: text("status").notNull().default("pending"), // 'pending', 'paid', 'cancelled'
   qrCodeData: text("qr_code_data"),
+  totalPrice: integer("total_price").notNull(), // in cents
 });
 
 export const facilitiesRelations = relations(facilities, ({ many }) => ({

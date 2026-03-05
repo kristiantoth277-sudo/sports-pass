@@ -118,6 +118,13 @@ export async function registerRoutes(
     res.json({ success: true, qrCodeData: qrData });
   });
 
+  // Admin routes
+  app.get("/api/admin/bookings", isAuthenticated, async (req: any, res) => {
+    // For MVP, we'll just check if authenticated, in real app check for admin role
+    const allBookings = await storage.getAllBookings();
+    res.json(allBookings);
+  });
+
   // Setup seed data (run once when server starts)
   seedDatabase().catch(console.error);
 
@@ -128,28 +135,44 @@ async function seedDatabase() {
   const existingFacilities = await storage.getFacilities();
   if (existingFacilities.length === 0) {
     console.log("Seeding initial facilities...");
+    
+    // Badminton Courts
     await storage.createFacility({
-      name: "Downtown Tennis Court",
-      description: "Professional grade hard court located in the city center. Features floodlights for evening play.",
-      imageUrl: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 2500, // $25.00
-      sportType: "tennis",
+      name: "Bedminton - Kurt 1",
+      description: "Profesionálny bedmintonový kurt č. 1",
+      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 1250, // 12.50 €
+      sportType: "badminton",
+      courtNumber: "Kurt 1",
     });
 
     await storage.createFacility({
-      name: "Riverside Basketball Arena",
-      description: "Indoor hardwood court with full sizing. Air conditioned and locker rooms available.",
-      imageUrl: "https://images.unsplash.com/photo-1505666287802-931dc83948e9?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 3500, // $35.00
-      sportType: "basketball",
+      name: "Bedminton - Kurt 2",
+      description: "Profesionálny bedmintonový kurt č. 2",
+      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 1250, // 12.50 €
+      sportType: "badminton",
+      courtNumber: "Kurt 2",
     });
 
+    // Bowling
     await storage.createFacility({
-      name: "Greenfield Turf 5v5",
-      description: "Premium artificial turf field perfect for 5-a-side football matches. Includes goal posts and nets.",
-      imageUrl: "https://images.unsplash.com/photo-1459865264687-595d652de67e?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 4000, // $40.00
-      sportType: "football",
+      name: "Bowlingová dráha 1",
+      description: "Moderná bowlingová dráha pre skupiny",
+      imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 2000,
+      sportType: "bowling",
+      courtNumber: "Dráha 1",
+    });
+
+    // Table Tennis
+    await storage.createFacility({
+      name: "Stolný tenis",
+      description: "Kvalitný stôl na stolný tenis",
+      imageUrl: "https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 800,
+      sportType: "table_tennis",
+      courtNumber: "Stôl 1",
     });
   }
 }
