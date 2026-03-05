@@ -3,7 +3,8 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
-import { isAuthenticated } from "./replit_integrations/auth/replitAuth";
+import { setupAuth, isAuthenticated } from "./replit_integrations/auth/replitAuth";
+import { registerAuthRoutes } from "./replit_integrations/auth/routes";
 import crypto from "crypto";
 
 const BESTERON_API_KEY = process.env.BESTERON_API_KEY!;
@@ -67,6 +68,9 @@ export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+  await setupAuth(app);
+  registerAuthRoutes(app);
+
   // Facilities
   app.get(api.facilities.list.path, async (req, res) => {
     const allFacilities = await storage.getFacilities();
