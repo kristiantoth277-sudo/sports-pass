@@ -6,6 +6,10 @@ import { z } from "zod";
 import { isAuthenticated } from "./replit_integrations/auth/replitAuth";
 import crypto from "crypto";
 
+const BESTERON_API_KEY = process.env.BESTERON_API_KEY!;
+const BESTERON_MERCHANT_ID = process.env.BESTERON_MERCHANT_ID!;
+const BESTERON_API_URL = "https://api.besteron.com/v1";
+
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "zaramia2024";
 const ENABLE_SHELLY = process.env.ENABLE_SHELLY === "true";
 
@@ -95,6 +99,125 @@ export async function registerRoutes(
     }
   });
 
+  // Besteron: Create payment intent and return redirect URL
+  app.post("/api/bookings/:id/besteron-pay", isAuthenticated, async (req: any, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID rezervácie" });
+
+    const bookingWithFacility = await storage.getBooking(id);
+    if (!bookingWithFacility?.booking) return res.status(404).json({ message: "Rezervácia sa nenašla" });
+
+    const userId = req.user.claims.sub;
+    if (bookingWithFacility.booking.userId !== userId) {
+      return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
+    }
+    if (bookingWithFacility.booking.status === 'paid') {
+      return res.status(400).json({ message: "Rezervácia je už zaplatená" });
+    }
+
+    const { booking, facility } = bookingWithFacility;
+    const appUrl = `https://${req.get("host")}`;
+    const returnUrl = `${appUrl}/bookings/${id}?payment=return`;
+
+    try {
+      const payload = {
+        merchantId: BESTERON_MERCHANT_ID,
+        amount: booking.totalPrice, // in cents
+        currency: "EUR",
+        orderId: `ZARAMIA-${id}-${Date.now()}`,
+        description: `Zaramia rezervácia: ${facility?.name || 'Šport'}`,
+        returnUrl,
+        language: "SK",
+      };
+
+      const response = await fetch(`${BESTERON_API_URL}/payment-intent`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${BESTERON_API_KEY}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Besteron error:", errText);
+        return res.status(502).json({ message: "Chyba platobnej brány Besteron", detail: errText });
+      }
+
+      const data: any = await response.json();
+      const paymentIntentId = data.paymentIntentId || data.id;
+      const redirectUrl = data.redirectUrl;
+
+      if (!redirectUrl) {
+        return res.status(502).json({ message: "Besteron nevrátil redirectUrl" });
+      }
+
+      await storage.updateBookingPaymentId(id, paymentIntentId);
+
+      res.json({ redirectUrl });
+    } catch (err: any) {
+      console.error("Besteron fetch error:", err);
+      res.status(500).json({ message: "Chyba pri komunikácii s Besteron" });
+    }
+  });
+
+  // Besteron: Return URL handler – verify payment status
+  app.get("/api/bookings/:id/besteron-verify", isAuthenticated, async (req: any, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID rezervácie" });
+
+    const bookingWithFacility = await storage.getBooking(id);
+    if (!bookingWithFacility?.booking) return res.status(404).json({ message: "Rezervácia sa nenašla" });
+
+    const userId = req.user.claims.sub;
+    if (bookingWithFacility.booking.userId !== userId) {
+      return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
+    }
+
+    const { booking } = bookingWithFacility;
+
+    if (booking.status === 'paid') {
+      return res.json({ status: 'paid', qrCodeData: booking.qrCodeData });
+    }
+
+    if (!booking.besteronPaymentId) {
+      return res.status(400).json({ message: "Platba nebola inicializovaná" });
+    }
+
+    try {
+      const response = await fetch(`${BESTERON_API_URL}/payment-information/${booking.besteronPaymentId}`, {
+        headers: {
+          "Authorization": `Bearer ${BESTERON_API_KEY}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("Besteron verify error:", errText);
+        return res.status(502).json({ message: "Chyba overenia platby", detail: errText });
+      }
+
+      const data: any = await response.json();
+      // Besteron statuses: PAID, PENDING, FAILED, CANCELLED
+      const besteronStatus = (data.status || data.paymentStatus || '').toUpperCase();
+
+      if (besteronStatus === 'PAID' || besteronStatus === 'COMPLETED' || besteronStatus === 'SUCCESS') {
+        const qrData = `ZARAMIA_BOOKING_${id}_${crypto.randomBytes(8).toString('hex')}`;
+        await storage.updateBookingStatus(id, 'paid', qrData);
+        return res.json({ status: 'paid', qrCodeData: qrData });
+      } else if (besteronStatus === 'FAILED' || besteronStatus === 'CANCELLED') {
+        return res.json({ status: 'failed' });
+      } else {
+        return res.json({ status: 'pending' });
+      }
+    } catch (err: any) {
+      console.error("Besteron verify fetch error:", err);
+      res.status(500).json({ message: "Chyba pri overovaní platby" });
+    }
+  });
+
+  // Legacy mock pay kept as fallback (admin use)
   app.post(api.bookings.pay.path, isAuthenticated, async (req: any, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {

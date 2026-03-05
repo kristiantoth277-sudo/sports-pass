@@ -26,6 +26,7 @@ export const bookings = pgTable("bookings", {
   status: text("status").notNull().default("reserved"), // 'reserved', 'paid', 'cancelled'
   qrCodeData: text("qr_code_data"),
   totalPrice: integer("total_price").notNull(), // in cents
+  besteronPaymentId: text("besteron_payment_id"), // Besteron paymentIntentId
 });
 
 export const shellySettings = pgTable("shelly_settings", {

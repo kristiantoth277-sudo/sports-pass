@@ -1,28 +1,105 @@
-import { useParams, Link } from "wouter";
-import { format, parseISO, differenceInHours } from "date-fns";
+import { useParams, Link, useLocation } from "wouter";
+import { useEffect, useState } from "react";
+import { format, parseISO, differenceInMinutes } from "date-fns";
+import { sk } from "date-fns/locale";
 import { motion } from "framer-motion";
 import { QRCodeSVG } from "qrcode.react";
-import { ArrowLeft, MapPin, CalendarDays, Clock, CheckCircle2, AlertCircle, CreditCard, ShieldCheck } from "lucide-react";
-import { useBooking, usePayBooking } from "@/hooks/use-bookings";
+import { ArrowLeft, CalendarDays, Clock, CheckCircle2, AlertCircle, CreditCard, ShieldCheck, Loader2, XCircle } from "lucide-react";
+import { useBooking } from "@/hooks/use-bookings";
 import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { queryClient } from "@/lib/queryClient";
+import { api, buildUrl } from "@shared/routes";
 
 export default function BookingDetails() {
   const { id } = useParams<{ id: string }>();
+  const [location] = useLocation();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  
-  const { data: booking, isLoading } = useBooking(Number(id));
-  const payBooking = usePayBooking();
+  const { toast } = useToast();
 
-  if (authLoading || isLoading) {
-    return <div className="flex-1 flex items-center justify-center min-h-[60vh]"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+  const { data: booking, isLoading, refetch } = useBooking(Number(id));
+
+  const [payPending, setPayPending] = useState(false);
+  const [verifying, setVerifying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+
+  // Detect return from Besteron (payment=return in URL)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("payment") === "return" && id) {
+      verifyPayment();
+    }
+  }, [id]);
+
+  const verifyPayment = async () => {
+    setVerifying(true);
+    setPayError(null);
+    try {
+      const res = await fetch(`/api/bookings/${id}/besteron-verify`, { credentials: "include" });
+      const data = await res.json();
+
+      if (data.status === "paid") {
+        await refetch();
+        queryClient.invalidateQueries({ queryKey: [api.bookings.list.path] });
+        toast({ title: "Platba úspešná", description: "Vaša rezervácia bola zaplatená. Tu je váš QR kód." });
+        // Remove query param from URL without reload
+        window.history.replaceState({}, "", `/bookings/${id}`);
+      } else if (data.status === "failed") {
+        setPayError("Platba zlyhala alebo bola zrušená. Skúste znova.");
+        window.history.replaceState({}, "", `/bookings/${id}`);
+      } else {
+        setPayError("Platba ešte nebola spracovaná. Skúste znova o chvíľu.");
+        window.history.replaceState({}, "", `/bookings/${id}`);
+      }
+    } catch (err) {
+      setPayError("Chyba pri overovaní platby.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
+  const handleBesteronPay = async () => {
+    setPayPending(true);
+    setPayError(null);
+    try {
+      const res = await fetch(`/api/bookings/${id}/besteron-pay`, {
+        method: "POST",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPayError(data.message || "Chyba pri vytváraní platby.");
+        return;
+      }
+      if (data.redirectUrl) {
+        window.location.href = data.redirectUrl;
+      } else {
+        setPayError("Nepodarilo sa získať platobný odkaz.");
+      }
+    } catch (err) {
+      setPayError("Chyba pri komunikácii so serverom.");
+    } finally {
+      setPayPending(false);
+    }
+  };
+
+  if (authLoading || isLoading || verifying) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <Loader2 className="w-12 h-12 animate-spin text-red-600" />
+        {verifying && <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Overujem platbu...</p>}
+      </div>
+    );
   }
 
   if (!isAuthenticated || !booking) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
-        <AlertCircle className="w-16 h-16 text-destructive mb-4" />
-        <h2 className="text-2xl font-bold text-white mb-2">{!isAuthenticated ? "Unauthorized" : "Booking Not Found"}</h2>
-        <Link href="/bookings" className="text-primary font-bold hover:underline">Return to Bookings</Link>
+        <AlertCircle className="w-16 h-16 text-red-600 mb-4" />
+        <h2 className="text-2xl font-bold text-white mb-2">
+          {!isAuthenticated ? "Neprihlásený" : "Rezervácia sa nenašla"}
+        </h2>
+        <Link href="/bookings" className="text-red-600 font-bold hover:underline">Späť na rezervácie</Link>
       </div>
     );
   }
@@ -30,166 +107,128 @@ export default function BookingDetails() {
   const isPaid = booking.status === 'paid';
   const startDate = parseISO(booking.startTime as unknown as string);
   const endDate = parseISO(booking.endTime as unknown as string);
-  const duration = differenceInHours(endDate, startDate) || 1;
-  const totalAmount = (booking.facility.pricePerHour / 100) * duration;
-
-  const handlePayment = () => {
-    payBooking.mutate(booking.id);
-  };
+  const durationMin = differenceInMinutes(endDate, startDate);
+  const totalAmount = (booking.totalPrice / 100).toFixed(2).replace('.', ',');
 
   return (
-    <div className="flex-1 py-12 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-      <Link href="/bookings" className="inline-flex items-center text-muted-foreground hover:text-white mb-8 transition-colors font-medium">
-        <ArrowLeft className="w-4 h-4 mr-2" />
-        Back to Bookings
-      </Link>
+    <div className="flex-1 pb-24 bg-black">
+      {/* Header image */}
+      <div className="relative h-[28vh] w-full">
+        <img
+          src={booking.facility.imageUrl || "/images/badminton1.jpg"}
+          alt={booking.facility.name}
+          className="w-full h-full object-cover opacity-40"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black to-transparent" />
+        <div className="absolute top-6 left-6">
+          <Link href="/bookings" className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-xl flex items-center justify-center text-white">
+            <ArrowLeft className="w-6 h-6" />
+          </Link>
+        </div>
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-8 items-start">
-        
-        {/* Left Column: Details */}
-        <div className="w-full lg:w-2/3 space-y-6">
-          <div className="bg-card border border-border rounded-3xl overflow-hidden shadow-xl">
-            <div className="h-48 md:h-64 relative bg-secondary">
-               <img 
-                src={booking.facility.imageUrl || `https://images.unsplash.com/photo-1546519638-68e109498ffc?w=1200&h=600&fit=crop`}
-                alt={booking.facility.name}
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-card to-transparent" />
-              <div className="absolute bottom-6 left-6 right-6">
-                <div className={`inline-flex items-center px-4 py-1.5 rounded-full text-sm font-bold uppercase tracking-wider mb-4 border backdrop-blur-md ${
-                  isPaid ? 'bg-green-500/20 text-green-400 border-green-500/30' : 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
-                }`}>
-                  {isPaid ? <CheckCircle2 className="w-4 h-4 mr-2" /> : <Clock className="w-4 h-4 mr-2" />}
-                  {booking.status}
-                </div>
-                <h1 className="text-3xl md:text-4xl font-display font-black text-white">{booking.facility.name}</h1>
-              </div>
+      <div className="max-w-2xl mx-auto px-4 -mt-14 relative z-10 space-y-6">
+        {/* Status badge + title */}
+        <div className="bg-zinc-900 border border-white/5 rounded-[2rem] p-8 shadow-2xl">
+          <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-black uppercase tracking-widest mb-4 border ${isPaid ? 'bg-green-500/10 text-green-400 border-green-500/20' : 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20'}`}>
+            {isPaid ? <CheckCircle2 className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
+            {isPaid ? "Zaplatená" : "Rezervovaná"}
+          </div>
+          <h1 className="text-3xl font-display font-black text-white uppercase tracking-tight mb-1">{booking.facility.name}</h1>
+          <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">Rezervácia #{String(booking.id).padStart(6, '0')}</p>
+        </div>
+
+        {/* Details */}
+        <div className="bg-zinc-900 border border-white/5 rounded-[2rem] p-8 shadow-xl space-y-6">
+          <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Detaily rezervácie</h3>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-black border border-white/5 flex items-center justify-center shrink-0">
+              <CalendarDays className="w-5 h-5 text-red-600" />
             </div>
-
-            <div className="p-6 md:p-8">
-              <h3 className="text-xl font-bold text-white mb-6 border-b border-border pb-4">Session Details</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="flex items-start">
-                  <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mr-4 shrink-0">
-                    <CalendarDays className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider mb-1">Date</p>
-                    <p className="text-white font-medium text-lg">{format(startDate, 'EEEE, MMM do, yyyy')}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mr-4 shrink-0">
-                    <Clock className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider mb-1">Time ({duration} hr)</p>
-                    <p className="text-white font-medium text-lg">{format(startDate, 'HH:mm')} - {format(endDate, 'HH:mm')}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <div className="w-12 h-12 rounded-xl bg-background border border-border flex items-center justify-center mr-4 shrink-0">
-                    <MapPin className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground font-bold uppercase tracking-wider mb-1">Location</p>
-                    <p className="text-white font-medium text-lg">{booking.facility.sportType} Arena</p>
-                  </div>
-                </div>
-              </div>
+            <div>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-0.5">Dátum</p>
+              <p className="text-white font-bold">{format(startDate, 'EEEE d. MMMM yyyy', { locale: sk })}</p>
             </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-xl bg-black border border-white/5 flex items-center justify-center shrink-0">
+              <Clock className="w-5 h-5 text-red-600" />
+            </div>
+            <div>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-widest mb-0.5">Čas ({durationMin} min)</p>
+              <p className="text-white font-bold">{format(startDate, 'HH:mm')} – {format(endDate, 'HH:mm')}</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between pt-4 border-t border-white/5">
+            <span className="text-gray-400 font-bold uppercase tracking-widest text-sm">Celková suma</span>
+            <span className="text-3xl font-display font-black text-red-600">{totalAmount} €</span>
           </div>
         </div>
 
-        {/* Right Column: Action / QR */}
-        <div className="w-full lg:w-1/3">
-          <motion.div 
+        {/* Payment / QR */}
+        {isPaid ? (
+          <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="sticky top-28"
+            className="bg-zinc-900 border-2 border-green-500/20 rounded-[2rem] p-8 text-center shadow-2xl"
           >
-            {isPaid ? (
-              <div className="bg-card border-2 border-primary/30 rounded-3xl p-8 text-center shadow-[0_0_40px_hsl(var(--primary)/0.1)] relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary to-cyan-300" />
-                
-                <h3 className="text-2xl font-display font-bold text-white mb-2">Access Pass</h3>
-                <p className="text-muted-foreground text-sm mb-8">Scan this code at the facility entrance to unlock your arena.</p>
-                
-                <div className="bg-white p-6 rounded-2xl inline-block mx-auto mb-6 shadow-xl">
-                  {booking.qrCodeData ? (
-                    <QRCodeSVG 
-                      value={booking.qrCodeData} 
-                      size={200}
-                      level="H"
-                      includeMargin={false}
-                    />
-                  ) : (
-                    <div className="w-[200px] h-[200px] bg-gray-100 flex items-center justify-center">
-                      <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                    </div>
-                  )}
+            <h3 className="text-2xl font-display font-black text-white mb-1">Vstupný QR kód</h3>
+            <p className="text-gray-400 text-sm mb-8">Predložte pri vstupe do areálu.</p>
+            <div className="bg-white p-6 rounded-2xl inline-block mx-auto mb-6 shadow-xl">
+              {booking.qrCodeData ? (
+                <QRCodeSVG
+                  value={booking.qrCodeData}
+                  size={200}
+                  level="H"
+                  includeMargin={false}
+                />
+              ) : (
+                <div className="w-[200px] h-[200px] bg-gray-100 flex items-center justify-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
                 </div>
-                
-                <div className="bg-background rounded-xl p-4 border border-border mb-2">
-                  <p className="text-xs text-muted-foreground uppercase font-bold tracking-wider mb-1">Booking ID</p>
-                  <p className="font-mono text-white tracking-widest">{booking.id.toString().padStart(8, '0')}</p>
-                </div>
-                <div className="flex items-center justify-center text-green-400 text-sm font-bold mt-4">
-                  <ShieldCheck className="w-4 h-4 mr-1.5" />
-                  Verified & Secure
-                </div>
-              </div>
-            ) : (
-              <div className="bg-card border border-border rounded-3xl p-8 shadow-2xl">
-                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20">
-                  <CreditCard className="w-8 h-8 text-primary" />
-                </div>
-                
-                <h3 className="text-2xl font-display font-bold text-white mb-2">Complete Payment</h3>
-                <p className="text-muted-foreground mb-8">Your booking is reserved. Complete payment to get your access QR code.</p>
-                
-                <div className="space-y-4 mb-8">
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Court rate ({duration} hr)</span>
-                    <span>${totalAmount.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-muted-foreground">
-                    <span>Service fee</span>
-                    <span>$0.00</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-4 border-t border-border">
-                    <span className="font-bold text-white text-lg">Total</span>
-                    <span className="text-3xl font-display font-black text-white">${totalAmount.toFixed(2)}</span>
-                  </div>
-                </div>
+              )}
+            </div>
+            <div className="flex items-center justify-center text-green-400 text-sm font-black gap-2">
+              <ShieldCheck className="w-4 h-4" />
+              Overená a zabezpečená rezervácia
+            </div>
+          </motion.div>
+        ) : (
+          <div className="bg-zinc-900 border border-white/5 rounded-[2rem] p-8 shadow-2xl">
+            <div className="w-14 h-14 bg-red-600/10 rounded-2xl flex items-center justify-center mb-6 border border-red-600/20">
+              <CreditCard className="w-7 h-7 text-red-600" />
+            </div>
+            <h3 className="text-2xl font-display font-black text-white mb-2">Zaplatiť rezerváciu</h3>
+            <p className="text-gray-400 mb-8 leading-relaxed">
+              Rezervácia je potvrdená. Dokončite platbu cez Besteron — budete presmerovaní na bezpečnú platobnú stránku.
+            </p>
 
-                <button
-                  onClick={handlePayment}
-                  disabled={payBooking.isPending}
-                  className="w-full py-4 rounded-xl font-bold text-lg bg-white text-black hover:bg-gray-200 transition-colors shadow-lg active:scale-[0.98] disabled:opacity-50 disabled:transform-none flex justify-center items-center"
-                >
-                  {payBooking.isPending ? <Loader2 className="w-6 h-6 animate-spin" /> : "Simulate Payment"}
-                </button>
-                
-                {payBooking.isError && (
-                  <p className="mt-4 text-sm text-destructive text-center font-medium">
-                    {payBooking.error.message}
-                  </p>
-                )}
-                
-                <p className="text-center text-xs text-muted-foreground mt-4 flex items-center justify-center">
-                  <ShieldCheck className="w-3 h-3 mr-1" />
-                  Mocked Secure Checkout
-                </p>
+            {payError && (
+              <div className="flex items-start gap-3 bg-red-600/10 border border-red-600/20 rounded-2xl p-4 mb-6">
+                <XCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
+                <p className="text-red-400 text-sm font-medium">{payError}</p>
               </div>
             )}
-          </motion.div>
-        </div>
 
+            <button
+              onClick={handleBesteronPay}
+              disabled={payPending}
+              data-testid="button-pay-besteron"
+              className="w-full py-5 rounded-2xl font-black text-lg bg-red-600 text-white shadow-[0_0_40px_-10px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+            >
+              {payPending ? (
+                <><Loader2 className="w-6 h-6 animate-spin" /> Presmerovávam...</>
+              ) : (
+                <><CreditCard className="w-6 h-6" /> ZAPLATIŤ {totalAmount} € cez Besteron</>
+              )}
+            </button>
+
+            <p className="text-center text-xs text-gray-600 mt-4 flex items-center justify-center gap-1">
+              <ShieldCheck className="w-3 h-3" />
+              Platba je zabezpečená cez Besteron — overenú platobnú bránu
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

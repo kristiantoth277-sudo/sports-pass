@@ -14,6 +14,7 @@ export interface IStorage {
   getBooking(id: number): Promise<any | undefined>;
   createBooking(booking: InsertBooking & { userId: string }): Promise<Booking>;
   updateBookingStatus(id: number, status: string, qrCodeData?: string): Promise<Booking | undefined>;
+  updateBookingPaymentId(id: number, besteronPaymentId: string): Promise<Booking | undefined>;
   getAllBookings(): Promise<any[]>;
   getShellySettings(): Promise<any[]>;
   updateShellySetting(key: string, value: string): Promise<void>;
@@ -79,6 +80,15 @@ export class DatabaseStorage implements IStorage {
         status, 
         ...(qrCodeData && { qrCodeData }) 
       })
+      .where(eq(bookings.id, id))
+      .returning();
+    return updatedBooking;
+  }
+
+  async updateBookingPaymentId(id: number, besteronPaymentId: string): Promise<Booking | undefined> {
+    const [updatedBooking] = await db
+      .update(bookings)
+      .set({ besteronPaymentId })
       .where(eq(bookings.id, id))
       .returning();
     return updatedBooking;
