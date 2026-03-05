@@ -166,7 +166,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Badminton – Kurt 1",
       description: "Profesionálny bedmintonový kurt č. 1 v Bowl center s.r.o.",
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/badminton1.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "1",
@@ -176,7 +176,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Badminton – Kurt 2",
       description: "Profesionálny bedmintonový kurt č. 2 v Bowl center s.r.o.",
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/badminton2.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "2",
@@ -186,7 +186,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Badminton – Kurt 3",
       description: "Profesionálny bedmintonový kurt č. 3 v Bowl center s.r.o.",
-      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/badminton1.jpg",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "3",
