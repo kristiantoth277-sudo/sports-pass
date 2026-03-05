@@ -300,7 +300,7 @@ export default function Home() {
             >
               <iframe
                 title="Zaramia mapa"
-                src="https://maps.google.com/maps?q=Cukrov%C3%A1rska+28a%2C+979+01+Rimavsk%C3%A1+Sobota&output=embed&z=17"
+                src="https://maps.google.com/maps?q=48.3859279,20.0152241&output=embed&z=18"
                 width="100%"
                 height="220"
                 style={{ border: 0, display: 'block' }}
