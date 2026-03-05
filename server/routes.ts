@@ -32,10 +32,12 @@ async function getBesteronGateToken(): Promise<string> {
 }
 
 async function getBesteronPassiveToken(): Promise<string> {
+  const clientId = process.env.BESTERON_PASSIVE_MERCHANT_ID || BESTERON_MERCHANT_ID;
+  const clientSecret = process.env.BESTERON_PASSIVE_API_KEY || BESTERON_API_KEY;
   const body = new URLSearchParams({
     grant_type: "client_credentials",
-    client_id: BESTERON_MERCHANT_ID,
-    client_secret: BESTERON_API_KEY,
+    client_id: clientId,
+    client_secret: clientSecret,
   });
   const res = await fetch(`${BESTERON_PASSIVE_URL}/oauth2/token`, {
     method: "POST",
@@ -342,6 +344,20 @@ export async function registerRoutes(
     const { key, value } = req.body;
     await storage.updateShellySetting(key, value);
     res.json({ success: true });
+  });
+
+  app.post("/api/admin/bookings/:id/mark-paid", isAuthenticated, isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID rezervácie" });
+    const bookingWithFacility = await storage.getBooking(id);
+    if (!bookingWithFacility?.booking) return res.status(404).json({ message: "Rezervácia sa nenašla" });
+    if (bookingWithFacility.booking.status === 'paid') {
+      return res.status(400).json({ message: "Rezervácia je už zaplatená" });
+    }
+    const qrData = `ZARAMIA_BOOKING_${id}_${crypto.randomBytes(8).toString('hex')}`;
+    const updated = await storage.updateBookingStatus(id, "paid", qrData);
+    if (!updated) return res.status(500).json({ message: "Nepodarilo sa aktualizovať stav" });
+    res.json({ success: true, qrCodeData: qrData });
   });
 
   app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {

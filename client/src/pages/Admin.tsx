@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sk } from "date-fns/locale";
-import { Loader2, Search, Power, Settings as SettingsIcon, CheckCircle, XCircle } from "lucide-react";
+import { Loader2, Search, Power, Settings as SettingsIcon, CheckCircle, XCircle, Calendar, CreditCard } from "lucide-react";
 import { api, buildUrl } from "@shared/routes";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,6 +24,26 @@ export default function Admin() {
     enabled: isLoggedIn,
     headers: { "x-admin-password": password }
   } as any);
+
+  const markPaid = useMutation({
+    mutationFn: async (bookingId: number) => {
+      const res = await fetch(`/api/admin/bookings/${bookingId}/mark-paid`, {
+        method: "POST",
+        headers: { "x-admin-password": password },
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Chyba");
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/bookings"] });
+      toast({ title: "Rezervácia označená ako zaplatená" });
+    },
+    onError: (err: any) => {
+      toast({ title: "Chyba", description: err.message, variant: "destructive" });
+    }
+  });
 
   const updateSetting = useMutation({
     mutationFn: async ({ key, value }: { key: string, value: string }) => {
@@ -150,11 +170,12 @@ export default function Admin() {
                   <th className="pb-6 text-xs font-black uppercase tracking-widest text-gray-500">Čas</th>
                   <th className="pb-6 text-xs font-black uppercase tracking-widest text-gray-500">Stav</th>
                   <th className="pb-6 text-xs font-black uppercase tracking-widest text-gray-500 text-right">Cena</th>
+                  <th className="pb-6 text-xs font-black uppercase tracking-widest text-gray-500 text-right">Akcia</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/5">
                 {isLoading ? (
-                  <tr><td colSpan={5} className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600" /></td></tr>
+                  <tr><td colSpan={6} className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600" /></td></tr>
                 ) : filteredBookings?.map((b: any) => (
                   <tr key={b.id} className="group">
                     <td className="py-6">
@@ -175,6 +196,17 @@ export default function Admin() {
                       </span>
                     </td>
                     <td className="py-6 text-right font-black text-white">{(b.totalPrice/100).toFixed(2)} €</td>
+                    <td className="py-6 text-right">
+                      {b.status !== 'paid' && (
+                        <button
+                          onClick={() => markPaid.mutate(b.id)}
+                          disabled={markPaid.isPending}
+                          className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-600/10 text-green-500 border border-green-600/20 hover:bg-green-600 hover:text-white transition-all flex items-center gap-1 ml-auto"
+                        >
+                          <CreditCard className="w-3 h-3" /> Označiť ako zaplatené
+                        </button>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
