@@ -214,6 +214,55 @@ export default function Home() {
           </div>
         )}
       </section>
+
+      {/* Social Media Section */}
+      <section className="px-4 pb-28 max-w-2xl mx-auto w-full">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <p className="text-center text-xs font-black uppercase tracking-[0.25em] text-gray-600 mb-5">Sledujte nás</p>
+          <div className="grid grid-cols-2 gap-4">
+            {/* Instagram */}
+            <a
+              href="https://www.instagram.com/zaramiapizzasportfun/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center justify-center gap-3 py-7 rounded-[1.75rem] border border-white/5 bg-zinc-900 hover:-translate-y-1 transition-all duration-300"
+              style={{background: 'linear-gradient(135deg, rgba(131,58,180,0.08), rgba(225,48,108,0.08), rgba(253,203,110,0.08))'}}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(225,48,108,0.3)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.05)'}
+            >
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{background: 'linear-gradient(135deg, #833ab4, #e1306c, #fd9e52)'}}>
+                <Instagram className="w-7 h-7 text-white" />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-black text-sm">@zaramiapizzasportfun</p>
+                <p className="text-gray-600 text-xs font-bold mt-0.5 uppercase tracking-widest">Instagram</p>
+              </div>
+            </a>
+
+            {/* Facebook */}
+            <a
+              href="https://www.facebook.com/pizzazaramia/?locale=sk_SK"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex flex-col items-center justify-center gap-3 py-7 rounded-[1.75rem] border border-white/5 bg-zinc-900 hover:-translate-y-1 transition-all duration-300"
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(24,119,242,0.3)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.borderColor = 'rgba(255,255,255,0.05)'}
+            >
+              <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-[#1877F2]">
+                <Facebook className="w-7 h-7 text-white" />
+              </div>
+              <div className="text-center">
+                <p className="text-white font-black text-sm">Pizza Zaramia</p>
+                <p className="text-gray-600 text-xs font-bold mt-0.5 uppercase tracking-widest">Facebook</p>
+              </div>
+            </a>
+          </div>
+        </motion.div>
+      </section>
     </div>
   );
 }
