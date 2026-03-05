@@ -11,6 +11,7 @@ import Home from "@/pages/Home";
 import FacilityDetails from "@/pages/FacilityDetails";
 import MyBookings from "@/pages/MyBookings";
 import BookingDetails from "@/pages/BookingDetails";
+import Admin from "@/pages/Admin";
 
 function Router() {
   return (
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/facilities/:id" component={FacilityDetails} />
       <Route path="/bookings" component={MyBookings} />
       <Route path="/bookings/:id" component={BookingDetails} />
+      <Route path="/admin" component={Admin} />
       <Route component={NotFound} />
     </Switch>
   );

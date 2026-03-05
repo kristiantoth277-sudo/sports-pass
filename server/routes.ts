@@ -1,10 +1,21 @@
-import type { Express } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { isAuthenticated } from "./replit_integrations/auth/replitAuth";
 import crypto from "crypto";
+
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "zaramia2024";
+const ENABLE_SHELLY = process.env.ENABLE_SHELLY === "true";
+
+export function isAdmin(req: Request, res: Response, next: NextFunction) {
+  const adminAuth = req.headers["x-admin-password"];
+  if (adminAuth === ADMIN_PASSWORD) {
+    return next();
+  }
+  res.status(401).json({ message: "Neautorizovaný prístup správcu" });
+}
 
 export async function registerRoutes(
   httpServer: Server,
@@ -19,11 +30,11 @@ export async function registerRoutes(
   app.get(api.facilities.get.path, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid facility ID" });
+      return res.status(400).json({ message: "Neplatné ID zariadenia" });
     }
     const facility = await storage.getFacility(id);
     if (!facility) {
-      return res.status(404).json({ message: "Facility not found" });
+      return res.status(404).json({ message: "Zariadenie sa nenašlo" });
     }
     res.json(facility);
   });
@@ -32,7 +43,6 @@ export async function registerRoutes(
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
     const userId = req.user.claims.sub;
     const userBookings = await storage.getBookingsByUserId(userId);
-    // Flatten the joined result for easier consumption by frontend
     const flattenedBookings = userBookings.map(b => ({
       ...b.booking,
       facility: b.facility
@@ -43,17 +53,17 @@ export async function registerRoutes(
   app.get(api.bookings.get.path, isAuthenticated, async (req: any, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid booking ID" });
+      return res.status(400).json({ message: "Neplatné ID rezervácie" });
     }
 
     const bookingWithFacility = await storage.getBooking(id);
     if (!bookingWithFacility || !bookingWithFacility.booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ message: "Rezervácia sa nenašla" });
     }
 
     const userId = req.user.claims.sub;
     if (bookingWithFacility.booking.userId !== userId) {
-      return res.status(401).json({ message: "Unauthorized access to booking" });
+      return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
 
     res.json({
@@ -64,13 +74,13 @@ export async function registerRoutes(
 
   app.post(api.bookings.create.path, isAuthenticated, async (req: any, res) => {
     try {
-      // Create request uses the partial zod schema and we coerce dates
       const parsedBody = api.bookings.create.input.parse(req.body);
       const userId = req.user.claims.sub;
 
       const newBooking = await storage.createBooking({
         ...parsedBody,
-        userId
+        userId,
+        status: "reserved"
       });
 
       res.status(201).json(newBooking);
@@ -81,51 +91,67 @@ export async function registerRoutes(
           field: err.errors[0].path.join('.'),
         });
       }
-      res.status(500).json({ message: "Failed to create booking" });
+      res.status(500).json({ message: "Nepodarilo sa vytvoriť rezerváciu" });
     }
   });
 
-  // Simulated Payment Endpoint
   app.post(api.bookings.pay.path, isAuthenticated, async (req: any, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) {
-      return res.status(400).json({ message: "Invalid booking ID" });
+      return res.status(400).json({ message: "Neplatné ID rezervácie" });
     }
 
     const bookingWithFacility = await storage.getBooking(id);
     if (!bookingWithFacility || !bookingWithFacility.booking) {
-      return res.status(404).json({ message: "Booking not found" });
+      return res.status(404).json({ message: "Rezervácia sa nenašla" });
     }
 
     const userId = req.user.claims.sub;
     if (bookingWithFacility.booking.userId !== userId) {
-      return res.status(401).json({ message: "Unauthorized access to booking" });
+      return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
 
     if (bookingWithFacility.booking.status === 'paid') {
-      return res.status(400).json({ message: "Booking is already paid" });
+      return res.status(400).json({ message: "Rezervácia je už zaplatená" });
     }
 
-    // Simulate payment success and generate QR code data
-    const qrData = `SPORT_BOOKING_${id}_${crypto.randomBytes(8).toString('hex')}`;
-    
+    const qrData = `ZARAMIA_BOOKING_${id}_${crypto.randomBytes(8).toString('hex')}`;
     const updated = await storage.updateBookingStatus(id, "paid", qrData);
     
     if (!updated) {
-      return res.status(500).json({ message: "Failed to update booking status" });
+      return res.status(500).json({ message: "Nepodarilo sa aktualizovať stav rezervácie" });
     }
 
     res.json({ success: true, qrCodeData: qrData });
   });
 
   // Admin routes
-  app.get("/api/admin/bookings", isAuthenticated, async (req: any, res) => {
-    // For MVP, we'll just check if authenticated, in real app check for admin role
+  app.get("/api/admin/bookings", isAuthenticated, isAdmin, async (req, res) => {
     const allBookings = await storage.getAllBookings();
     res.json(allBookings);
   });
 
-  // Setup seed data (run once when server starts)
+  app.get("/api/admin/shelly/settings", isAuthenticated, isAdmin, async (req, res) => {
+    const settings = await storage.getShellySettings();
+    res.json(settings);
+  });
+
+  app.post("/api/admin/shelly/settings", isAuthenticated, isAdmin, async (req, res) => {
+    const { key, value } = req.body;
+    await storage.updateShellySetting(key, value);
+    res.json({ success: true });
+  });
+
+  app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {
+    if (!ENABLE_SHELLY) {
+      return res.status(400).json({ message: "Ovládanie Shelly je momentálne zakázané (ENABLE_SHELLY=false)" });
+    }
+    const { zone, action } = req.body;
+    // Mock control logic
+    console.log(`Shelly Control: Zone ${zone}, Action ${action}`);
+    res.json({ success: true, message: `Zóna ${zone} bola ${action === 'on' ? 'zapnutá' : 'vypnutá'}` });
+  });
+
   seedDatabase().catch(console.error);
 
   return httpServer;
@@ -139,40 +165,62 @@ async function seedDatabase() {
     // Badminton Courts
     await storage.createFacility({
       name: "Bedminton - Kurt 1",
-      description: "Profesionálny bedmintonový kurt č. 1",
+      description: "Profesionálny bedmintonový kurt č. 1 v Bowl center s.r.o.",
       imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "Kurt 1",
+      isComingSoon: false,
     });
 
     await storage.createFacility({
       name: "Bedminton - Kurt 2",
-      description: "Profesionálny bedmintonový kurt č. 2",
+      description: "Profesionálny bedmintonový kurt č. 2 v Bowl center s.r.o.",
       imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
       courtNumber: "Kurt 2",
+      isComingSoon: false,
     });
 
     // Bowling
     await storage.createFacility({
-      name: "Bowlingová dráha 1",
-      description: "Moderná bowlingová dráha pre skupiny",
+      name: "Bowling",
+      description: "Moderná bowlingová dráha. Čoskoro k dispozícii!",
       imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 2000,
+      pricePerHour: 0,
       sportType: "bowling",
-      courtNumber: "Dráha 1",
+      isComingSoon: true,
     });
 
     // Table Tennis
     await storage.createFacility({
       name: "Stolný tenis",
-      description: "Kvalitný stôl na stolný tenis",
+      description: "Kvalitný stôl na stolný tenis. Čoskoro k dispozícii!",
       imageUrl: "https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 800,
+      pricePerHour: 0,
       sportType: "table_tennis",
-      courtNumber: "Stôl 1",
+      isComingSoon: true,
+    });
+
+    // Pizza
+    await storage.createFacility({
+      name: "Pizza Zaramia",
+      description: "Vynikajúca pizza priamo v našom centre.",
+      imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 0,
+      sportType: "pizza",
+      isComingSoon: false,
+    });
+
+    // Bar
+    await storage.createFacility({
+      name: "Bar účet",
+      description: "Osviežujúce nápoje a barové služby.",
+      imageUrl: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 0,
+      sportType: "bar",
+      isComingSoon: false,
     });
   }
 }

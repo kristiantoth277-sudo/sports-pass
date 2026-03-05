@@ -15,6 +15,8 @@ export interface IStorage {
   createBooking(booking: InsertBooking & { userId: string }): Promise<Booking>;
   updateBookingStatus(id: number, status: string, qrCodeData?: string): Promise<Booking | undefined>;
   getAllBookings(): Promise<any[]>;
+  getShellySettings(): Promise<any[]>;
+  updateShellySetting(key: string, value: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -93,6 +95,20 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(facilities, eq(bookings.facilityId, facilities.id))
       .leftJoin(users, eq(bookings.userId, users.id))
       .orderBy(desc(bookings.startTime));
+  }
+
+  async getShellySettings(): Promise<any[]> {
+    return await db.select().from(shellySettings);
+  }
+
+  async updateShellySetting(key: string, value: string): Promise<void> {
+    await db
+      .insert(shellySettings)
+      .values({ key, value })
+      .onConflictDoUpdate({
+        target: shellySettings.key,
+        set: { value },
+      });
   }
 }
 
