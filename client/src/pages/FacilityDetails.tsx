@@ -1,12 +1,14 @@
-import { useParams, useLocation } from "wouter";
+import { useParams, useLocation, Link } from "wouter";
 import { useState, useMemo } from "react";
 import { format, addMinutes, parse, startOfToday } from "date-fns";
 import { motion } from "framer-motion";
-import { Calendar as CalendarIcon, Clock, MapPin, Info, ArrowLeft, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { useFacilities } from "@/hooks/use-facilities";
 import { useCreateBooking } from "@/hooks/use-bookings";
 import { useAuth } from "@/hooks/use-auth";
-import { Link } from "wouter";
+
+const BRAND_GREEN = "#1e8c2a";
+const BRAND_RED = "#cc1a1a";
 
 export default function FacilityDetails() {
   const { id } = useParams<{ id: string }>();
@@ -108,7 +110,7 @@ export default function FacilityDetails() {
       <div className="max-w-3xl mx-auto px-4 -mt-16 relative z-10">
         <div className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 shadow-2xl">
           <div className="mb-8">
-            <span className="text-red-600 font-black tracking-widest uppercase text-xs mb-2 block">Rezervácia</span>
+            <span className="font-black tracking-widest uppercase text-xs mb-2 block" style={{color: BRAND_GREEN}}>Rezervácia</span>
             <h1 className="text-4xl font-display font-black text-white uppercase tracking-tight mb-2">{sportType === 'badminton' ? 'Bedminton' : facility.name}</h1>
             <p className="text-gray-400">{facility.description}</p>
           </div>
@@ -126,11 +128,12 @@ export default function FacilityDetails() {
                       className={cn(
                         "py-4 rounded-2xl font-bold border-2 transition-all flex items-center justify-center space-x-2",
                         selectedCourtId === court.id 
-                          ? "bg-red-600 border-red-600 text-white" 
+                          ? "text-white" 
                           : "bg-black border-white/5 text-gray-500 hover:border-white/20"
                       )}
+                      style={selectedCourtId === court.id ? {background: BRAND_GREEN, borderColor: BRAND_GREEN} : {}}
                     >
-                      {selectedCourtId === court.id && <Check className="w-5 h-5" />}
+                      {selectedCourtId === court.id && <Check className="w-5 h-5" style={{color: 'white'}} />}
                       <span>{court.courtNumber}</span>
                     </button>
                   ))}
@@ -146,7 +149,8 @@ export default function FacilityDetails() {
                   min={format(startOfToday(), "yyyy-MM-dd")}
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="w-full bg-black border-2 border-white/5 rounded-2xl px-6 py-4 text-white font-bold outline-none focus:border-red-600 transition-all"
+                  className="w-full bg-black border-2 border-white/5 rounded-2xl px-6 py-4 text-white font-bold outline-none transition-all"
+                  style={{colorScheme: 'dark'}}
                 />
               </div>
 
@@ -155,7 +159,7 @@ export default function FacilityDetails() {
                 <select
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full bg-black border-2 border-white/5 rounded-2xl px-6 py-4 text-white font-bold outline-none focus:border-red-600 transition-all appearance-none"
+                  className="w-full bg-black border-2 border-white/5 rounded-2xl px-6 py-4 text-white font-bold outline-none transition-all appearance-none"
                 >
                   {timeOptions.map(t => (
                     <option key={t} value={t}>{t}</option>
@@ -174,9 +178,10 @@ export default function FacilityDetails() {
                     className={cn(
                       "py-4 rounded-2xl font-bold border-2 transition-all",
                       duration === m 
-                        ? "bg-white text-black border-white" 
+                        ? "text-white" 
                         : "bg-black border-white/5 text-gray-500 hover:border-white/20"
                     )}
+                    style={duration === m ? {background: BRAND_RED, borderColor: BRAND_RED} : {}}
                   >
                     {m} min
                   </button>
@@ -191,14 +196,15 @@ export default function FacilityDetails() {
               </div>
               <div className="flex justify-between items-center pt-6 border-t border-white/5">
                 <span className="text-gray-400 font-bold">Celková cena</span>
-                <span className="text-4xl font-display font-black text-red-600">{totalPrice.toFixed(2)} €</span>
+                <span className="text-4xl font-display font-black" style={{color: BRAND_GREEN}}>{totalPrice.toFixed(2).replace('.', ',')} €</span>
               </div>
             </div>
 
             <button
               onClick={handleBook}
               disabled={createBooking.isPending}
-              className="w-full py-6 rounded-3xl font-black text-xl bg-red-600 text-white shadow-[0_0_50px_-10px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+              className="w-full py-6 rounded-3xl font-black text-xl text-white hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+              style={{background: BRAND_GREEN, boxShadow: `0 0 50px -10px ${BRAND_GREEN}70`}}
             >
               {createBooking.isPending ? "Spracúvam..." : (isAuthenticated ? "POTVRDIŤ REZERVÁCIU" : "PRIHLÁSIŤ SA A REZERVOVAŤ")}
             </button>

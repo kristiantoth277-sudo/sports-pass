@@ -214,7 +214,8 @@ export default function BookingDetails() {
               onClick={handleBesteronPay}
               disabled={payPending}
               data-testid="button-pay-besteron"
-              className="w-full py-5 rounded-2xl font-black text-lg bg-red-600 text-white shadow-[0_0_40px_-10px_rgba(220,38,38,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full py-5 rounded-2xl font-black text-lg text-white hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+              style={{background: '#cc1a1a', boxShadow: '0 0 40px -10px rgba(204,26,26,0.5)'}}
             >
               {payPending ? (
                 <><Loader2 className="w-6 h-6 animate-spin" /> Presmerovávam...</>

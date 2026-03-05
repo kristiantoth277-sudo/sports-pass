@@ -1,45 +1,52 @@
 import { Link, useLocation } from "wouter";
-import { motion } from "framer-motion";
 import { useAuth } from "@/hooks/use-auth";
-import { Activity, Calendar, LayoutDashboard, LogIn, LogOut, Settings, Facebook } from "lucide-react";
-import { useState } from "react";
+import { LogOut, Facebook } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-black text-white font-sans selection:bg-red-600 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#0a0a0a] text-white font-sans selection:bg-[#1e8c2a]/40 selection:text-white">
       {/* Navbar */}
-      <header className="sticky top-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6">
+      <header className="sticky top-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-2xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-                <img src="/images/zaramia_logo.jpg" alt="Zaramia Logo" className="w-full h-full object-cover" />
+              <div className="h-12 w-12 rounded-xl overflow-hidden flex-shrink-0">
+                <img
+                  src="/images/zaramia_logo_full.jpg"
+                  alt="ZaraMia"
+                  className="w-full h-full object-cover"
+                />
               </div>
-              <span className="font-display font-black text-2xl tracking-tighter text-white uppercase italic">
-                ZARAMIA<span className="text-red-600">.</span>
-              </span>
+              <div className="flex flex-col leading-none">
+                <span className="font-display font-black text-xl tracking-tighter text-white italic">
+                  Zara<span style={{color:'#cc1a1a'}}>Mia</span>
+                </span>
+                <span className="text-[10px] font-bold tracking-widest uppercase" style={{color:'#1e8c2a'}}>
+                  pizza, sport &amp; fun
+                </span>
+              </div>
             </Link>
 
             {/* Desktop Nav */}
             <nav className="hidden md:flex items-center space-x-8">
-              <Link href="/" className={cn("text-sm font-black uppercase tracking-widest transition-colors hover:text-red-600", location === "/" ? "text-red-600" : "text-gray-500")}>
+              <Link href="/" className={cn("text-sm font-black uppercase tracking-widest transition-colors", location === "/" ? "text-[#1e8c2a]" : "text-gray-500 hover:text-white")}>
                 Domov
               </Link>
               {isAuthenticated && (
-                <Link href="/bookings" className={cn("text-sm font-black uppercase tracking-widest transition-colors hover:text-red-600", location === "/bookings" ? "text-red-600" : "text-gray-500")}>
+                <Link href="/bookings" className={cn("text-sm font-black uppercase tracking-widest transition-colors", location === "/bookings" ? "text-[#1e8c2a]" : "text-gray-500 hover:text-white")}>
                   Rezervácie
                 </Link>
               )}
-              <Link href="/admin" className={cn("text-sm font-black uppercase tracking-widest transition-colors hover:text-red-600", location === "/admin" ? "text-red-600" : "text-gray-500")}>
+              <Link href="/admin" className={cn("text-sm font-black uppercase tracking-widest transition-colors", location === "/admin" ? "text-[#cc1a1a]" : "text-gray-500 hover:text-white")}>
                 Admin
               </Link>
-              <a 
-                href="https://www.facebook.com/pizzazaramia/?locale=sk_SK" 
-                target="_blank" 
+              <a
+                href="https://www.facebook.com/pizzazaramia/?locale=sk_SK"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-500 hover:text-[#1877F2] transition-colors"
                 title="Facebook"
@@ -48,20 +55,27 @@ export function Layout({ children }: { children: React.ReactNode }) {
               </a>
             </nav>
 
-            <div className="flex items-center space-x-6">
+            {/* Auth */}
+            <div className="flex items-center space-x-4">
               {!isLoading && (
                 isAuthenticated ? (
-                  <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
                     <div className="hidden sm:flex flex-col items-end">
                       <span className="text-xs font-black uppercase tracking-widest text-white">{user?.firstName || "Hosť"}</span>
-                      <span className="text-[10px] text-gray-500 uppercase font-bold">{user?.email}</span>
+                      <span className="text-[10px] text-gray-500 font-bold">{user?.email}</span>
                     </div>
-                    <button onClick={() => logout()} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 hover:text-red-600 hover:bg-red-600/10 transition-all">
+                    <button
+                      onClick={() => logout()}
+                      className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-gray-500 hover:text-[#cc1a1a] hover:bg-[#cc1a1a]/10 transition-all"
+                    >
                       <LogOut className="w-5 h-5" />
                     </button>
                   </div>
                 ) : (
-                  <button onClick={() => window.location.href = "/api/login"} className="px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest bg-white text-black hover:bg-red-600 hover:text-white transition-all">
+                  <button
+                    onClick={() => window.location.href = "/api/login"}
+                    className="px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest text-white transition-all border border-[#1e8c2a]/50 hover:bg-[#1e8c2a] hover:border-[#1e8c2a]"
+                  >
                     Vstup
                   </button>
                 )
