@@ -9,6 +9,8 @@ import { useToast } from "@/hooks/use-toast";
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginError, setLoginError] = useState("");
+  const [loginPending, setLoginPending] = useState(false);
   const [search, setSearch] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -96,11 +98,30 @@ export default function Admin() {
             className="w-full bg-black border-2 border-white/5 rounded-2xl px-6 py-4 text-white font-bold mb-6 outline-none focus:border-red-600 transition-all text-center"
           />
           <button 
-            onClick={() => setIsLoggedIn(true)}
-            className="w-full py-4 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest shadow-[0_0_30px_-5px_rgba(220,38,38,0.5)]"
+            onClick={async () => {
+              setLoginError("");
+              setLoginPending(true);
+              try {
+                const res = await fetch("/api/admin/ping", {
+                  headers: { "x-admin-password": password },
+                });
+                if (res.ok) {
+                  setIsLoggedIn(true);
+                } else {
+                  setLoginError("Nesprávne heslo");
+                }
+              } catch {
+                setLoginError("Chyba pripojenia");
+              } finally {
+                setLoginPending(false);
+              }
+            }}
+            disabled={loginPending || !password}
+            className="w-full py-4 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest shadow-[0_0_30px_-5px_rgba(220,38,38,0.5)] disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            Vstúpiť
+            {loginPending ? <><Loader2 className="w-5 h-5 animate-spin" /> Overujem...</> : "Vstúpiť"}
           </button>
+          {loginError && <p className="text-red-400 text-sm mt-3 font-medium">{loginError}</p>}
         </div>
       </div>
     );

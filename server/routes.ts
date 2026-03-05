@@ -353,6 +353,8 @@ export async function registerRoutes(
     res.json({ success: true });
   });
 
+  app.get("/api/admin/ping", isAdmin, (_req, res) => res.json({ ok: true }));
+
   app.get("/api/admin/besteron-check/:transactionId", isAdmin, async (req, res) => {
     const { transactionId } = req.params;
     try {
