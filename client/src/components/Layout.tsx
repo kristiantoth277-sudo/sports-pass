@@ -1,6 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/hooks/use-auth";
-import { LogOut, Facebook, Instagram } from "lucide-react";
+import { LogOut, Facebook, Instagram, CalendarDays } from "lucide-react";
 
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
@@ -41,6 +41,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   Rezervácie
                 </Link>
               )}
+              <Link href="/schedule" className={cn("flex items-center gap-1.5 text-sm font-black uppercase tracking-widest transition-colors", location === "/schedule" ? "text-[#3b82f6]" : "text-gray-500 hover:text-white")}>
+                <CalendarDays className="w-4 h-4" />
+                Prehľad
+              </Link>
               <Link href="/admin" className={cn("text-sm font-black uppercase tracking-widest transition-colors", location === "/admin" ? "text-[#cc1a1a]" : "text-gray-500 hover:text-white")}>
                 Admin
               </Link>

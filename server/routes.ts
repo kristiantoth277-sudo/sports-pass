@@ -443,7 +443,36 @@ export async function registerRoutes(
     res.json({ success: true, message: `Zóna ${zone} bola ${action === 'on' ? 'zapnutá' : 'vypnutá'}` });
   });
 
+  // Public schedule endpoint - shows bookings for a given date
+  app.get("/api/schedule", async (req, res) => {
+    const dateStr = req.query.date as string;
+    const date = dateStr ? new Date(dateStr) : new Date();
+    const dayStart = new Date(date);
+    dayStart.setHours(0, 0, 0, 0);
+    const dayEnd = new Date(date);
+    dayEnd.setHours(23, 59, 59, 999);
+
+    const allBookings = await storage.getAllBookings();
+    const dayBookings = allBookings
+      .filter(({ booking }: any) =>
+        booking.status !== 'cancelled' &&
+        new Date(booking.startTime) < dayEnd &&
+        new Date(booking.endTime) > dayStart
+      )
+      .map(({ booking, facility }: any) => ({
+        id: booking.id,
+        facilityId: booking.facilityId,
+        facilityName: facility?.name,
+        sportType: facility?.sportType,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+        status: booking.status,
+      }));
+    res.json(dayBookings);
+  });
+
   seedDatabase().catch(console.error);
+  syncFacilities().catch(console.error);
 
   return httpServer;
 }
@@ -527,4 +556,19 @@ async function seedDatabase() {
       isComingSoon: true,
     });
   }
+}
+
+// Sync existing facilities to correct state (runs on every startup)
+async function syncFacilities() {
+  const updates: { id: number; isComingSoon: boolean; pricePerHour: number; description: string }[] = [
+    { id: 4, isComingSoon: false, pricePerHour: 1250, description: "Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun." },
+    { id: 5, isComingSoon: false, pricePerHour: 1250, description: "Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun." },
+    { id: 6, isComingSoon: false, pricePerHour: 1000, description: "Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun." },
+  ];
+  for (const u of updates) {
+    await db.update(facilities)
+      .set({ isComingSoon: u.isComingSoon, pricePerHour: u.pricePerHour, description: u.description })
+      .where(eq(facilities.id, u.id));
+  }
+  console.log("Facilities synced.");
 }

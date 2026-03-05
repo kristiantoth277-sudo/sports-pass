@@ -13,6 +13,7 @@ import MyBookings from "@/pages/MyBookings";
 import BookingDetails from "@/pages/BookingDetails";
 import Admin from "@/pages/Admin";
 import Menu from "@/pages/Menu";
+import Schedule from "@/pages/Schedule";
 
 function Router() {
   return (
@@ -23,6 +24,7 @@ function Router() {
       <Route path="/bookings/:id" component={BookingDetails} />
       <Route path="/admin" component={Admin} />
       <Route path="/menu" component={Menu} />
+      <Route path="/schedule" component={Schedule} />
       <Route component={NotFound} />
     </Switch>
   );
