@@ -49,10 +49,13 @@ async function getBesteronPassiveToken(): Promise<string> {
   return data.access_token;
 }
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "zaramia2024";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 const ENABLE_SHELLY = process.env.ENABLE_SHELLY === "true";
 
 export function isAdmin(req: Request, res: Response, next: NextFunction) {
+  if (!ADMIN_PASSWORD) {
+    return res.status(503).json({ message: "Admin authentication not configured" });
+  }
   const adminAuth = req.headers["x-admin-password"];
   if (adminAuth === ADMIN_PASSWORD) {
     return next();
