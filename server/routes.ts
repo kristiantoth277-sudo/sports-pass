@@ -264,13 +264,14 @@ export async function registerRoutes(
     try {
       const token = await getBesteronPassiveToken();
 
-      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents/${transactionId}`, {
+      const response = await fetch(`${BESTERON_PASSIVE_URL}/payment-intents`, {
         method: "POST",
         headers: {
           "Accept": "application/json",
           "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
+        body: JSON.stringify({ transactionId }),
       });
 
       if (!response.ok) {
