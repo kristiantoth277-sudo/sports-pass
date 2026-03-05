@@ -1,6 +1,9 @@
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { db } from "./db";
+import { facilities } from "@shared/schema";
+import { eq } from "drizzle-orm";
 import { api } from "@shared/routes";
 import { z } from "zod";
 import { setupAuth, isAuthenticated } from "./replit_integrations/auth/replitAuth";
@@ -79,16 +82,21 @@ export async function registerRoutes(
     res.json(allFacilities);
   });
 
-  app.get(api.facilities.get.path, async (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) {
-      return res.status(400).json({ message: "Neplatné ID zariadenia" });
-    }
-    const facility = await storage.getFacility(id);
-    if (!facility) {
-      return res.status(404).json({ message: "Zariadenie sa nenašlo" });
-    }
-    res.json(facility);
+  // Check if any badminton court is available (for bowling/table tennis availability condition)
+  // Must be registered BEFORE the :id route to avoid being matched as an ID
+  app.get("/api/facilities/badminton-available", async (req, res) => {
+    const now = new Date();
+    const allFacilities = await storage.getFacilities();
+    const badmintonCourts = allFacilities.filter(f => f.sportType === 'badminton');
+    const allBookings = await storage.getAllBookings();
+    const activeNow = allBookings.filter(({ booking }: any) =>
+      booking.status !== 'cancelled' &&
+      new Date(booking.startTime) <= now &&
+      new Date(booking.endTime) > now
+    );
+    const bookedFacilityIds = new Set(activeNow.map(({ booking }: any) => booking.facilityId));
+    const anyFree = badmintonCourts.some(c => !bookedFacilityIds.has(c.id));
+    res.json({ available: anyFree });
   });
 
   // Bookings
@@ -128,6 +136,25 @@ export async function registerRoutes(
     try {
       const parsedBody = api.bookings.create.input.parse(req.body);
       const userId = req.user.claims.sub;
+
+      // For bowling and table tennis: require at least one free badminton court
+      const facility = await storage.getFacility(parsedBody.facilityId);
+      if (facility && (facility.sportType === 'bowling' || facility.sportType === 'table_tennis')) {
+        const now = new Date();
+        const allFacilities = await storage.getFacilities();
+        const badmintonCourts = allFacilities.filter(f => f.sportType === 'badminton');
+        const allBookings = await storage.getAllBookings();
+        const activeNow = allBookings.filter(({ booking }: any) =>
+          booking.status !== 'cancelled' &&
+          new Date(booking.startTime) <= now &&
+          new Date(booking.endTime) > now
+        );
+        const bookedFacilityIds = new Set(activeNow.map(({ booking }: any) => booking.facilityId));
+        const anyFree = badmintonCourts.some(c => !bookedFacilityIds.has(c.id));
+        if (!anyFree) {
+          return res.status(400).json({ message: "Bowling a stolný tenis sú dostupné iba ak je voľný aspoň jeden badmintonový kurt." });
+        }
+      }
 
       const newBooking = await storage.createBooking({
         ...parsedBody,
@@ -355,6 +382,19 @@ export async function registerRoutes(
 
   app.get("/api/admin/ping", isAdmin, (_req, res) => res.json({ ok: true }));
 
+  app.post("/api/admin/facilities/:id/set-available", isAdmin, async (req, res) => {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID" });
+    const { isComingSoon, pricePerHour } = req.body;
+    await db.update(facilities)
+      .set({
+        ...(typeof isComingSoon === 'boolean' && { isComingSoon }),
+        ...(typeof pricePerHour === 'number' && { pricePerHour }),
+      })
+      .where(eq(facilities.id, id));
+    res.json({ success: true });
+  });
+
   app.get("/api/admin/besteron-check/:transactionId", isAdmin, async (req, res) => {
     const { transactionId } = req.params;
     try {
@@ -447,33 +487,33 @@ async function seedDatabase() {
     // Bowling
     await storage.createFacility({
       name: "Bowling – Dráha 1",
-      description: "Moderná bowlingová dráha č. 1. Čoskoro k dispozícii!",
+      description: "Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.",
       imageUrl: "/images/zaramia_bowling.jpg",
-      pricePerHour: 0,
+      pricePerHour: 1250,
       sportType: "bowling",
       courtNumber: "1",
-      isComingSoon: true,
+      isComingSoon: false,
     });
 
     await storage.createFacility({
       name: "Bowling – Dráha 2",
-      description: "Moderná bowlingová dráha č. 2. Čoskoro k dispozícii!",
+      description: "Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.",
       imageUrl: "/images/zaramia_bowling.jpg",
-      pricePerHour: 0,
+      pricePerHour: 1250,
       sportType: "bowling",
       courtNumber: "2",
-      isComingSoon: true,
+      isComingSoon: false,
     });
 
     // Table Tennis
     await storage.createFacility({
       name: "Stolný tenis – Stôl 1",
-      description: "Kvalitný stôl na stolný tenis č. 1. Čoskoro k dispozícii!",
+      description: "Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.",
       imageUrl: "/images/zaramia_pingpong.jpg",
-      pricePerHour: 0,
+      pricePerHour: 1000,
       sportType: "table_tennis",
       courtNumber: "1",
-      isComingSoon: true,
+      isComingSoon: false,
     });
 
     // VR Zone

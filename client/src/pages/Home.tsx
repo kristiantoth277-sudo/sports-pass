@@ -1,13 +1,19 @@
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useFacilities } from "@/hooks/use-facilities";
-import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook, Instagram } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook, Instagram, AlertCircle } from "lucide-react";
 
 const BRAND_GREEN = "#1e8c2a";
 const BRAND_RED = "#cc1a1a";
 
 export default function Home() {
   const { data: facilities, isLoading, error } = useFacilities();
+  const { data: badmintonAvailability } = useQuery<{ available: boolean }>({
+    queryKey: ["/api/facilities/badminton-available"],
+    refetchInterval: 60000,
+  });
+  const badmintonAvailable = badmintonAvailability?.available ?? true;
 
   const getIcon = (type: string) => {
     switch (type) {
@@ -158,7 +164,11 @@ export default function Home() {
             </motion.div>
 
             {facilities?.filter(f => !f.courtNumber || f.courtNumber === '1').map((facility, index) => {
-              const accent = getTileAccent(facility.sportType, !!facility.isComingSoon);
+              const needsBadminton = facility.sportType === 'bowling' || facility.sportType === 'table_tennis';
+              const isBlocked = needsBadminton && !badmintonAvailable;
+              const effectivelyUnavailable = !!facility.isComingSoon || isBlocked;
+              const accent = getTileAccent(facility.sportType, effectivelyUnavailable);
+              const facilityHref = effectivelyUnavailable ? "#" : `/facilities/${facility.id}`;
               return (
                 <motion.div
                   key={facility.id}
@@ -167,15 +177,15 @@ export default function Home() {
                   transition={{ duration: 0.4, delay: (index + 1) * 0.08 }}
                 >
                   <Link
-                    href={facility.isComingSoon ? "#" : (facility.sportType === 'badminton' ? `/facilities/${facility.id}` : "#")}
+                    href={facilityHref}
                     className={cn(
                       "relative block group aspect-square rounded-[2rem] overflow-hidden bg-zinc-900 transition-all duration-500",
-                      !facility.isComingSoon && "hover:-translate-y-2",
-                      facility.isComingSoon && "opacity-60 cursor-not-allowed"
+                      !effectivelyUnavailable && "hover:-translate-y-2",
+                      effectivelyUnavailable && "opacity-60 cursor-not-allowed"
                     )}
                     style={{ border: `2px solid rgba(255,255,255,0.05)` }}
                     onMouseEnter={e => {
-                      if (!facility.isComingSoon) {
+                      if (!effectivelyUnavailable) {
                         (e.currentTarget as HTMLElement).style.borderColor = `${accent.border}80`;
                         (e.currentTarget as HTMLElement).style.boxShadow = `0 0 40px -10px ${accent.shadow}`;
                       }
@@ -199,11 +209,18 @@ export default function Home() {
                         {facility.name.split(' – ')[0]}
                       </h3>
                       <div className="flex items-center justify-between">
-                        <p className="text-gray-400 font-bold tracking-wide">
-                          {facility.isComingSoon ? "ČOSKORO" : (facility.pricePerHour > 0 ? `${(facility.pricePerHour/100).toFixed(2).replace('.', ',')} € / hod` : "ZOBRAZIŤ")}
+                        <p className="text-gray-400 font-bold tracking-wide text-sm">
+                          {facility.isComingSoon
+                            ? "ČOSKORO"
+                            : isBlocked
+                              ? "LEN PRI VOĽNOM KURTE"
+                              : (facility.pricePerHour > 0 ? `${(facility.pricePerHour/100).toFixed(2).replace('.', ',')} € / hod` : "ZOBRAZIŤ")}
                         </p>
-                        {!facility.isComingSoon && (
+                        {!effectivelyUnavailable && (
                           <ArrowRight className="w-6 h-6 transform group-hover:translate-x-2 transition-transform" style={{color: accent.arrow}} />
+                        )}
+                        {isBlocked && (
+                          <AlertCircle className="w-5 h-5 text-yellow-500" />
                         )}
                       </div>
                     </div>
