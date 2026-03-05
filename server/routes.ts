@@ -160,13 +160,29 @@ export async function registerRoutes(
 
     try {
       const token = await getBesteronGateToken();
+      const userClaims = req.user.claims;
 
       const payload = {
         totalAmount: booking.totalPrice,
         currencyCode: "EUR",
-        orderNumber: `ZARAMIA-${id}-${Date.now()}`,
-        description: `Zaramia rezervácia: ${facility?.name || 'Šport'}`,
+        orderNumber: `ZARAMIA${id}T${Date.now()}`,
+        description: `ZaraMia rezervácia: ${facility?.name || 'Šport'}`,
         language: "SK",
+        paymentMethods: ["CARD", "APPLEPAY", "GOOGLEPAY", "GIBASKBX", "TATRSKBX", "SUBASKBX", "POBNSKBA", "VIAMO"],
+        buyer: {
+          email: userClaims.email || undefined,
+          firstName: userClaims.first_name || undefined,
+          lastName: userClaims.last_name || undefined,
+        },
+        items: [
+          {
+            name: facility?.name || "Rezervácia ZaraMia",
+            type: "ITEM",
+            amount: booking.totalPrice,
+            count: 1,
+            vatRate: 20,
+          },
+        ],
         callback: {
           returnUrl,
         },
