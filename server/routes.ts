@@ -197,7 +197,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Bowling – Dráha 1",
       description: "Moderná bowlingová dráha č. 1. Čoskoro k dispozícii!",
-      imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/zaramia_bowling.jpg",
       pricePerHour: 0,
       sportType: "bowling",
       courtNumber: "1",
@@ -207,7 +207,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Bowling – Dráha 2",
       description: "Moderná bowlingová dráha č. 2. Čoskoro k dispozícii!",
-      imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/zaramia_bowling.jpg",
       pricePerHour: 0,
       sportType: "bowling",
       courtNumber: "2",
@@ -218,7 +218,7 @@ async function seedDatabase() {
     await storage.createFacility({
       name: "Stolný tenis – Stôl 1",
       description: "Kvalitný stôl na stolný tenis č. 1. Čoskoro k dispozícii!",
-      imageUrl: "https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&q=80&w=800",
+      imageUrl: "/images/zaramia_pingpong.jpg",
       pricePerHour: 0,
       sportType: "table_tennis",
       courtNumber: "1",
