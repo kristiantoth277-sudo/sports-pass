@@ -54,7 +54,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {facilities?.filter(f => !f.courtNumber || f.courtNumber === 'Kurt 1').map((facility, index) => (
+            {facilities?.filter(f => !f.courtNumber || f.courtNumber === '1').map((facility, index) => (
               <motion.div
                 key={facility.id}
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -81,11 +81,11 @@ export default function Home() {
                       {getIcon(facility.sportType)}
                     </div>
                     <h3 className="text-3xl font-display font-black text-white mb-2 tracking-tight uppercase">
-                      {facility.name.split(' - ')[0]}
+                      {facility.name.split(' – ')[0]}
                     </h3>
                     <div className="flex items-center justify-between">
                       <p className="text-gray-400 font-bold tracking-wide">
-                        {facility.isComingSoon ? "ČOSKORO" : (facility.pricePerHour > 0 ? `${(facility.pricePerHour/100).toFixed(2)} € / hod` : "ZOBRAZIŤ")}
+                        {facility.isComingSoon ? "ČOSKORO" : (facility.pricePerHour > 0 ? `${(facility.pricePerHour/100).toFixed(2).replace('.', ',')} € / hod` : "ZOBRAZIŤ")}
                       </p>
                       {!facility.isComingSoon && <ArrowRight className="w-6 h-6 text-red-600 transform group-hover:translate-x-2 transition-transform" />}
                     </div>

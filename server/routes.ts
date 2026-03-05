@@ -164,63 +164,65 @@ async function seedDatabase() {
     
     // Badminton Courts
     await storage.createFacility({
-      name: "Bedminton - Kurt 1",
+      name: "Badminton – Kurt 1",
       description: "Profesionálny bedmintonový kurt č. 1 v Bowl center s.r.o.",
       imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
-      courtNumber: "Kurt 1",
+      courtNumber: "1",
       isComingSoon: false,
     });
 
     await storage.createFacility({
-      name: "Bedminton - Kurt 2",
+      name: "Badminton – Kurt 2",
       description: "Profesionálny bedmintonový kurt č. 2 v Bowl center s.r.o.",
       imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 1250, // 12.50 €
       sportType: "badminton",
-      courtNumber: "Kurt 2",
+      courtNumber: "2",
+      isComingSoon: false,
+    });
+
+    await storage.createFacility({
+      name: "Badminton – Kurt 3",
+      description: "Profesionálny bedmintonový kurt č. 3 v Bowl center s.r.o.",
+      imageUrl: "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 1250, // 12.50 €
+      sportType: "badminton",
+      courtNumber: "3",
       isComingSoon: false,
     });
 
     // Bowling
     await storage.createFacility({
-      name: "Bowling",
-      description: "Moderná bowlingová dráha. Čoskoro k dispozícii!",
+      name: "Bowling – Dráha 1",
+      description: "Moderná bowlingová dráha č. 1. Čoskoro k dispozícii!",
       imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 0,
       sportType: "bowling",
+      courtNumber: "1",
+      isComingSoon: true,
+    });
+
+    await storage.createFacility({
+      name: "Bowling – Dráha 2",
+      description: "Moderná bowlingová dráha č. 2. Čoskoro k dispozícii!",
+      imageUrl: "https://images.unsplash.com/photo-1544124499-58912cbddada?auto=format&fit=crop&q=80&w=800",
+      pricePerHour: 0,
+      sportType: "bowling",
+      courtNumber: "2",
       isComingSoon: true,
     });
 
     // Table Tennis
     await storage.createFacility({
-      name: "Stolný tenis",
-      description: "Kvalitný stôl na stolný tenis. Čoskoro k dispozícii!",
+      name: "Stolný tenis – Stôl 1",
+      description: "Kvalitný stôl na stolný tenis č. 1. Čoskoro k dispozícii!",
       imageUrl: "https://images.unsplash.com/photo-1534158914592-062992fbe900?auto=format&fit=crop&q=80&w=800",
       pricePerHour: 0,
       sportType: "table_tennis",
+      courtNumber: "1",
       isComingSoon: true,
-    });
-
-    // Pizza
-    await storage.createFacility({
-      name: "Pizza Zaramia",
-      description: "Vynikajúca pizza priamo v našom centre.",
-      imageUrl: "https://images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 0,
-      sportType: "pizza",
-      isComingSoon: false,
-    });
-
-    // Bar
-    await storage.createFacility({
-      name: "Bar účet",
-      description: "Osviežujúce nápoje a barové služby.",
-      imageUrl: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?auto=format&fit=crop&q=80&w=800",
-      pricePerHour: 0,
-      sportType: "bar",
-      isComingSoon: false,
     });
   }
 }
