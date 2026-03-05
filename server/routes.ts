@@ -10,6 +10,8 @@ import { setupAuth, isAuthenticated } from "./replit_integrations/auth/replitAut
 import { registerAuthRoutes } from "./replit_integrations/auth/routes";
 import crypto from "crypto";
 import { sendBookingNotification } from "./emailNotification";
+import path from "path";
+import fsSync from "fs";
 
 const BESTERON_API_KEY = process.env.BESTERON_API_KEY!;
 const BESTERON_MERCHANT_ID = process.env.BESTERON_MERCHANT_ID!;
@@ -76,6 +78,23 @@ export async function registerRoutes(
 ): Promise<Server> {
   await setupAuth(app);
   registerAuthRoutes(app);
+
+  // Serve /images/ explicitly — works in both dev and prod regardless of __dirname quirks
+  const imageRoots = [
+    path.resolve(process.cwd(), "dist", "public", "images"),
+    path.resolve(process.cwd(), "client", "public", "images"),
+  ];
+  app.get("/images/:file", (req, res) => {
+    const file = req.params.file.replace(/[^a-zA-Z0-9._-]/g, "");
+    for (const dir of imageRoots) {
+      const full = path.join(dir, file);
+      if (fsSync.existsSync(full)) {
+        return res.sendFile(full);
+      }
+    }
+    res.status(404).send("Image not found");
+  });
+  console.log("[images] Searching in:", imageRoots.filter(d => fsSync.existsSync(d)));
 
   // Facilities
   app.get(api.facilities.list.path, async (req, res) => {
