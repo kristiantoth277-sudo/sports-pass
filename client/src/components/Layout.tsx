@@ -16,8 +16,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
           <div className="flex justify-between items-center h-20">
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)]">
-                <Activity className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl overflow-hidden shadow-[0_0_20px_rgba(220,38,38,0.3)]">
+                <img src="/images/zaramia_logo.jpg" alt="Zaramia Logo" className="w-full h-full object-cover" />
               </div>
               <span className="font-display font-black text-2xl tracking-tighter text-white uppercase italic">
                 ZARAMIA<span className="text-red-600">.</span>
