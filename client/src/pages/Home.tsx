@@ -292,7 +292,7 @@ export default function Home() {
           <div className="rounded-[1.75rem] border border-white/5 bg-zinc-900 overflow-hidden">
             {/* Google Maps embed */}
             <a
-              href="https://maps.google.com/?q=Cukrov%C3%A1rska+28a,+97901+Rimavsk%C3%A1+Sobota"
+              href="https://maps.app.goo.gl/gTjKCdXJRi6zmk6g9"
               target="_blank"
               rel="noopener noreferrer"
               className="block"
@@ -325,7 +325,7 @@ export default function Home() {
                 </div>
               </a>
               <a
-                href="https://maps.google.com/?q=Cukrov%C3%A1rska+28a,+97901+Rimavsk%C3%A1+Sobota"
+                href="https://maps.app.goo.gl/gTjKCdXJRi6zmk6g9"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-4 group"
