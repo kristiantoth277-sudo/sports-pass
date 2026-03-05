@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { useFacilities } from "@/hooks/use-facilities";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook, Instagram, AlertCircle } from "lucide-react";
+import { ArrowRight, Activity, Loader2, Utensils, Beer, Facebook, Instagram, AlertCircle, MapPin, Phone } from "lucide-react";
 
 const BRAND_GREEN = "#1e8c2a";
 const BRAND_RED = "#cc1a1a";
@@ -277,6 +277,70 @@ export default function Home() {
                 <p className="text-gray-600 text-xs font-bold mt-0.5 uppercase tracking-widest">Facebook</p>
               </div>
             </a>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Contact & Location */}
+      <section className="max-w-2xl mx-auto px-4 pb-28 pt-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <p className="text-center text-xs font-black uppercase tracking-[0.25em] text-gray-600 mb-5">Kde nás nájdete</p>
+          <div className="rounded-[1.75rem] border border-white/5 bg-zinc-900 overflow-hidden">
+            {/* Google Maps embed */}
+            <a
+              href="https://maps.google.com/?q=Cukrov%C3%A1rska+28a,+97901+Rimavsk%C3%A1+Sobota"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              data-testid="link-map"
+            >
+              <iframe
+                title="Zaramia mapa"
+                src="https://maps.google.com/maps?q=Cukrov%C3%A1rska+28a%2C+979+01+Rimavsk%C3%A1+Sobota&output=embed&z=17"
+                width="100%"
+                height="220"
+                style={{ border: 0, display: 'block' }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </a>
+            {/* Contact details */}
+            <div className="p-5 flex flex-col gap-4">
+              <a
+                href="tel:+421911293627"
+                className="flex items-center gap-4 group"
+                data-testid="link-phone"
+              >
+                <div className="w-11 h-11 rounded-xl bg-red-600/10 flex items-center justify-center shrink-0 group-hover:bg-red-600/20 transition-colors">
+                  <Phone className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-base">0911 293 627</p>
+                  <p className="text-gray-600 text-xs font-bold uppercase tracking-widest">Zavolajte nám</p>
+                </div>
+              </a>
+              <a
+                href="https://maps.google.com/?q=Cukrov%C3%A1rska+28a,+97901+Rimavsk%C3%A1+Sobota"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 group"
+                data-testid="link-address"
+              >
+                <div className="w-11 h-11 rounded-xl bg-red-600/10 flex items-center justify-center shrink-0 group-hover:bg-red-600/20 transition-colors">
+                  <MapPin className="w-5 h-5 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-white font-black text-base">Cukrovárska 5246, 28/A</p>
+                  <p className="text-gray-400 text-sm font-bold">97901 Rimavská Sobota</p>
+                  <p className="text-gray-600 text-xs mt-0.5">Za ekonomickou školou, oproti IK catering</p>
+                </div>
+              </a>
+            </div>
           </div>
         </motion.div>
       </section>
