@@ -192,6 +192,18 @@ export default function BookingDetails() {
                 </div>
               )}
             </div>
+            <div className="my-6 bg-black border border-yellow-500/30 rounded-2xl p-5 text-center">
+              <p className="text-[11px] font-black uppercase tracking-widest text-yellow-500 mb-2">Kód na vstupnú klávesnicu</p>
+              <div className="flex items-center justify-center gap-2">
+                {['2','5','5','2','1'].map((digit, i) => (
+                  <span key={i} data-testid={`digit-entry-code-${i}`}
+                    className="w-11 h-14 rounded-xl bg-yellow-500/10 border-2 border-yellow-500/40 flex items-center justify-center text-2xl font-black text-yellow-400 shadow-[0_0_12px_-4px_rgba(234,179,8,0.4)]">
+                    {digit}
+                  </span>
+                ))}
+              </div>
+              <p className="text-[10px] text-gray-600 mt-3 font-medium">Zadajte na klávesnici pri vstupe do haly</p>
+            </div>
             <div className="flex items-center justify-center text-green-400 text-sm font-black gap-2">
               <ShieldCheck className="w-4 h-4" />
               Overená a zabezpečená rezervácia
