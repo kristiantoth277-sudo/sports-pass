@@ -6,10 +6,10 @@ import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard,
 import { useToast } from "@/hooks/use-toast";
 
 const ZONES = [
-  { label: 'Svetlo hala', key: 'svetlo_hala_ip' },
-  { label: 'Hala2', key: 'hala2_ip' },
-  { label: 'Hala3', key: 'hala3_ip' },
-  { label: 'Bar bar', key: 'bar_bar_ip' },
+  { label: 'Svetlo hala', ipKey: 'svetlo_hala_ip', idKey: 'svetlo_hala_id' },
+  { label: 'Hala2',       ipKey: 'hala2_ip',       idKey: 'hala2_id' },
+  { label: 'Hala3',       ipKey: 'hala3_ip',       idKey: 'hala3_id' },
+  { label: 'Bar bar',     ipKey: 'bar_bar_ip',      idKey: 'bar_bar_id' },
 ];
 
 export default function Admin() {
@@ -89,10 +89,14 @@ export default function Admin() {
     }
   });
 
-  const saveAllIps = async () => {
+  const saveAllSettings = async () => {
+    const keysToSave: string[] = [];
     for (const zone of ZONES) {
-      const val = ipInputs[zone.key] || "";
-      await saveIp.mutateAsync({ key: zone.key, value: val });
+      keysToSave.push(zone.ipKey, zone.idKey);
+    }
+    keysToSave.push('shelly_server');
+    for (const key of keysToSave) {
+      await saveIp.mutateAsync({ key, value: ipInputs[key] || "" });
     }
     refetchStatus();
   };
@@ -331,52 +335,90 @@ export default function Admin() {
 
         {/* Settings Tab */}
         {activeTab === 'settings' && (
-          <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8">
-            <h2 className="text-xl font-black uppercase tracking-widest mb-2 flex items-center">
-              <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly IP Nastavenia
-            </h2>
-            <p className="text-gray-500 text-sm mb-8 font-medium">
-              Zadaj IP adresu každého Shelly zariadenia v lokálnej sieti (napr. <span className="font-mono text-gray-400">192.168.1.50</span>).
-              Zariadenia musia byť Gen1 Shelly s HTTP relay API.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {ZONES.map(({ label, key }) => (
-                <div key={key} className="bg-black rounded-2xl p-6 border border-white/5">
-                  <label className="block text-xs font-black uppercase tracking-widest text-gray-500 mb-3">{label}</label>
-                  <div className="flex gap-3 items-center">
-                    <Wifi className="w-5 h-5 text-gray-600 shrink-0" />
+          <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-8">
+            <div>
+              <h2 className="text-xl font-black uppercase tracking-widest mb-1 flex items-center">
+                <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly Nastavenia
+              </h2>
+              <p className="text-gray-500 text-sm font-medium">
+                Nastav Shelly Cloud (Device ID) alebo lokálnu sieť (IP adresa) pre každé zariadenie.
+              </p>
+            </div>
+
+            {/* Cloud API section */}
+            <div className="bg-black rounded-2xl p-6 border border-white/5 space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-blue-400 mb-1">☁ Shelly Cloud API (odporúčané)</h3>
+              <p className="text-[11px] text-gray-500 font-medium mb-4">
+                Device ID nájdeš v Shelly appke: klikni na zariadenie → ⚙ Settings → Device Info → <span className="font-mono text-gray-400">Device ID</span>
+              </p>
+
+              {/* Server URL */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Shelly Cloud Server URL</label>
+                <input
+                  type="text"
+                  placeholder="shelly-97-eu.shelly.cloud"
+                  value={ipInputs['shelly_server'] || ""}
+                  onChange={(e) => setIpInputs(prev => ({ ...prev, shelly_server: e.target.value }))}
+                  data-testid="input-shelly-server"
+                  className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm outline-none focus:border-blue-500 transition-all"
+                />
+                <p className="text-[10px] text-gray-600 mt-1 font-medium">Nájdeš ho v Shelly app → Settings → Cloud → Server</p>
+              </div>
+
+              {/* Device IDs grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ZONES.map(({ label, idKey }) => (
+                  <div key={idKey}>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{label} — Device ID</label>
                     <input
                       type="text"
-                      placeholder="192.168.1.xx"
-                      value={ipInputs[key] || ""}
-                      onChange={(e) => setIpInputs(prev => ({ ...prev, [key]: e.target.value }))}
-                      data-testid={`input-shelly-ip-${key}`}
-                      className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm outline-none focus:border-red-600 transition-all"
+                      placeholder="napr. shellyplug-s-abc123"
+                      value={ipInputs[idKey] || ""}
+                      onChange={(e) => setIpInputs(prev => ({ ...prev, [idKey]: e.target.value }))}
+                      data-testid={`input-shelly-id-${idKey}`}
+                      className="w-full bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm outline-none focus:border-blue-500 transition-all"
                     />
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+
+            {/* Local IP section */}
+            <div className="bg-black rounded-2xl p-6 border border-white/5 space-y-4">
+              <h3 className="text-xs font-black uppercase tracking-widest text-gray-400 mb-1">🌐 Lokálna sieť (záloha / alternatíva)</h3>
+              <p className="text-[11px] text-gray-500 font-medium mb-4">
+                Funguje len ak je server v rovnakej WiFi sieti ako Shelly zariadenia.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {ZONES.map(({ label, ipKey }) => (
+                  <div key={ipKey}>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">{label} — IP adresa</label>
+                    <div className="flex gap-2 items-center">
+                      <Wifi className="w-4 h-4 text-gray-600 shrink-0" />
+                      <input
+                        type="text"
+                        placeholder="192.168.1.xx"
+                        value={ipInputs[ipKey] || ""}
+                        onChange={(e) => setIpInputs(prev => ({ ...prev, [ipKey]: e.target.value }))}
+                        data-testid={`input-shelly-ip-${ipKey}`}
+                        className="flex-1 bg-zinc-900 border border-white/10 rounded-xl px-4 py-3 text-white font-mono text-sm outline-none focus:border-red-600 transition-all"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
             <button
-              onClick={saveAllIps}
+              onClick={saveAllSettings}
               disabled={saveIp.isPending}
               data-testid="button-save-shelly-settings"
               className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-red-600 text-white font-black uppercase tracking-widest shadow-[0_0_20px_-5px_rgba(220,38,38,0.5)] hover:bg-red-700 transition-all disabled:opacity-50"
             >
               {saveIp.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-              Uložiť nastavenia
+              Uložiť všetky nastavenia
             </button>
-            <div className="mt-10 bg-black rounded-2xl p-6 border border-yellow-600/20">
-              <h3 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center gap-2">
-                <AlertCircle className="w-4 h-4" /> Inštalácia a sieť
-              </h3>
-              <ul className="text-xs text-gray-400 space-y-2 font-medium list-disc list-inside">
-                <li>Shelly zariadenia musia byť pripojené k rovnakej WiFi sieti ako tento server</li>
-                <li>Skontroluj IP adresu v Shelly aplikácii alebo v routeri</li>
-                <li>Pre Gen2 zariadenia (Shelly Plus, Pro) je potrebná iná konfigurácia</li>
-                <li>Timeout pre každé zariadenie je 4 sekundy</li>
-              </ul>
-            </div>
           </section>
         )}
 

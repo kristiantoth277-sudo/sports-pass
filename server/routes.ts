@@ -501,35 +501,94 @@ export async function registerRoutes(
     }
   }
 
+  // Helper: call Shelly Cloud API
+  async function shellyCloudRequest(server: string, path: string, body: Record<string, string>): Promise<{ ok: boolean; data?: any; error?: string }> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 6000);
+      const formBody = Object.entries(body).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
+      const r = await fetch(`https://${server}${path}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formBody,
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+      const data = await r.json();
+      if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
+      return { ok: true, data };
+    } catch (err: any) {
+      return { ok: false, error: err.message || 'Nedostupné' };
+    }
+  }
+
   app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {
     const { zone, action } = req.body;
     if (!zone || !['on', 'off'].includes(action)) {
       return res.status(400).json({ message: "Neplatné parametre" });
     }
     const settings = await storage.getShellySettings();
-    const key = zoneKey(zone);
-    const ipSetting = settings.find((s: any) => s.key === key);
-    if (!ipSetting?.value) {
-      return res.status(400).json({ message: `IP adresa pre zónu "${zone}" nie je nastavená` });
+    const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
+
+    const idKey = zoneKey(zone).replace('_ip', '_id');
+    const deviceId = getSetting(idKey);
+    const server = getSetting('shelly_server');
+    const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
+
+    // Try Cloud API first
+    if (deviceId && server && authKey) {
+      const result = await shellyCloudRequest(server, '/device/relay/control', {
+        auth_key: authKey, id: deviceId, channel: '0', turn: action,
+      });
+      if (result.ok) {
+        console.log(`Shelly Cloud Control: ${zone} (${deviceId}) → ${action}`);
+        return res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'} (Cloud)` });
+      }
+      console.warn(`Shelly Cloud failed for ${zone}: ${result.error}, falling back to local...`);
     }
-    const result = await shellyRequest(ipSetting.value, `/relay/0?turn=${action}`);
-    if (!result.ok) {
-      return res.status(502).json({ message: `Shelly zariadenie nedostupné: ${result.error}` });
+
+    // Fallback: local IP
+    const ipKey = zoneKey(zone);
+    const ip = getSetting(ipKey);
+    if (!ip) {
+      return res.status(400).json({ message: `Zariadenie "${zone}" nie je nakonfigurované (chýba Device ID alebo IP adresa)` });
     }
-    console.log(`Shelly Control: Zone ${zone} (${ipSetting.value}), Action ${action}`);
-    res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'}`, data: result.data });
+    const localResult = await shellyRequest(ip, `/relay/0?turn=${action}`);
+    if (!localResult.ok) {
+      return res.status(502).json({ message: `Shelly nedostupné (Cloud aj lokálna sieť): ${localResult.error}` });
+    }
+    console.log(`Shelly Local Control: ${zone} (${ip}) → ${action}`);
+    res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'} (Lokálne)` });
   });
 
   app.get("/api/admin/shelly/status", isAuthenticated, isAdmin, async (req, res) => {
     const settings = await storage.getShellySettings();
     const zones = ['Svetlo hala', 'Hala2', 'Hala3', 'Bar bar'];
+    const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
+    const server = getSetting('shelly_server');
+    const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
+
     const statuses = await Promise.all(zones.map(async (zone) => {
-      const key = zoneKey(zone);
-      const ipSetting = settings.find((s: any) => s.key === key);
-      if (!ipSetting?.value) return { zone, ip: null, status: 'unconfigured' };
-      const result = await shellyRequest(ipSetting.value, '/relay/0');
-      if (!result.ok) return { zone, ip: ipSetting.value, status: 'offline', error: result.error };
-      return { zone, ip: ipSetting.value, status: result.data?.ison ? 'on' : 'off' };
+      const idKey = zoneKey(zone).replace('_ip', '_id');
+      const deviceId = getSetting(idKey);
+      const ip = getSetting(zoneKey(zone));
+
+      // Try Cloud first
+      if (deviceId && server && authKey) {
+        const result = await shellyCloudRequest(server, '/device/relay/status', {
+          auth_key: authKey, id: deviceId, channel: '0',
+        });
+        if (result.ok) {
+          const ison = result.data?.data?.device_status?.output ?? result.data?.data?.ison;
+          return { zone, deviceId, server, mode: 'cloud', status: ison ? 'on' : 'off' };
+        }
+      }
+
+      // Fallback: local IP
+      if (!ip) return { zone, status: 'unconfigured' };
+      const result = await shellyRequest(ip, '/relay/0');
+      if (!result.ok) return { zone, ip, mode: 'local', status: 'offline', error: result.error };
+      return { zone, ip, mode: 'local', status: result.data?.ison ? 'on' : 'off' };
     }));
     res.json(statuses);
   });
