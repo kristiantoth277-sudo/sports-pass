@@ -650,29 +650,49 @@ export async function registerRoutes(
   });
 
   // Shelly auto-check endpoint — called by Shelly Script every 60s
-  // Lights ON: 1 min after payment, OFF: 65 min after payment (1h + 5 min buffer)
+  // zone param: "Svetlo hala", "Hala2", "Hala3", "Bar bar"
   app.get("/api/shelly/check", async (req, res) => {
-    const DELAY_ON  =  1 * 60 * 1000; //  1 min after payment → turn on
-    const DELAY_OFF = 65 * 60 * 1000; // 65 min after payment → turn off (1h + 5 min)
+    const zone = (req.query.zone as string) || '';
+    const isBar = zone.toLowerCase().includes('bar');
     const now = Date.now();
+
+    // Hala zones: ON +1min → +65min after payment
+    const HALA_ON  =  1 * 60 * 1000;
+    const HALA_OFF = 65 * 60 * 1000;
+
+    // Bar bar: ON 0→10min AND 60→75min after payment
+    const BAR_GREET_START =  0 * 60 * 1000;
+    const BAR_GREET_END   = 10 * 60 * 1000;
+    const BAR_EXIT_START  = 60 * 60 * 1000;
+    const BAR_EXIT_END    = 75 * 60 * 1000;
 
     try {
       const allBookings = await storage.getAllBookings();
 
       const activeBooking = allBookings.find(({ booking }: any) => {
         if (!booking || booking.status !== 'paid' || !booking.paidAt) return false;
-        const paidTime = new Date(booking.paidAt).getTime();
-        return now >= paidTime + DELAY_ON && now <= paidTime + DELAY_OFF;
+        const t = new Date(booking.paidAt).getTime();
+        const elapsed = now - t;
+        if (isBar) {
+          return (elapsed >= BAR_GREET_START && elapsed <= BAR_GREET_END) ||
+                 (elapsed >= BAR_EXIT_START  && elapsed <= BAR_EXIT_END);
+        }
+        return elapsed >= HALA_ON && elapsed <= HALA_OFF;
       });
 
       if (activeBooking) {
         const { booking, facility } = activeBooking as any;
-        const paidTime = new Date(booking.paidAt).getTime();
-        const offAt = new Date(paidTime + DELAY_OFF).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
-        return res.json({
-          on: true,
-          reason: `${facility?.name || 'Rezervácia'} — svetlo do ${offAt}`,
-        });
+        const t = new Date(booking.paidAt).getTime();
+        const elapsed = now - t;
+        let reason = facility?.name || 'Rezervácia';
+        if (isBar) {
+          const phase = elapsed <= BAR_GREET_END ? 'príchod' : 'odchod';
+          reason += ` — ${phase}`;
+        } else {
+          const offAt = new Date(t + HALA_OFF).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+          reason += ` — svetlo do ${offAt}`;
+        }
+        return res.json({ on: true, reason });
       }
 
       res.json({ on: false, reason: 'Žiadna aktívna rezervácia' });

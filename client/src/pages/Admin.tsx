@@ -626,13 +626,13 @@ function StatusBadge({ status, loading }: { status?: string; loading?: boolean }
   );
 }
 
-const SHELLY_SCRIPT = `// Zaramia Auto-Svetlo Script
-// Nahraj na kazde Shelly zariadenie:
-// Otvor https://<IP zariadenia> -> Scripts -> + Add Script
-// Vloz tento kod, klikni Save + Start
+const SHELLY_SCRIPT_TEMPLATE = (zone: string) => `// Zaramia Auto-Svetlo — ${zone}
+// Otvor https://<IP> -> Scripts -> + Add Script -> Save -> Start
 
-let URL = "https://zaramia.sk/api/shelly/check";
-let INTERVAL = 60000; // 60 sekund
+let ZONE = "${zone}";
+let BASE = "https://zaramia.sk/api/shelly/check?zone=";
+let URL = BASE + encodeURIComponent(ZONE);
+let INTERVAL = 60000;
 
 function checkAndSet() {
   Shelly.call("HTTP.Request", {
@@ -655,47 +655,72 @@ checkAndSet();
 Timer.set(INTERVAL, true, checkAndSet);`;
 
 function ShellyScriptSection() {
+  const [activeZone, setActiveZone] = useState('Svetlo hala');
   const [copied, setCopied] = useState(false);
 
+  const script = SHELLY_SCRIPT_TEMPLATE(activeZone);
+  const zoneIp = KNOWN_DEVICES[activeZone]?.ip || '';
+
   const copy = () => {
-    navigator.clipboard.writeText(SHELLY_SCRIPT);
+    navigator.clipboard.writeText(script);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
     <div className="bg-green-950/20 border border-green-600/20 rounded-2xl p-6 space-y-4">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-lg font-black uppercase tracking-widest text-green-400 flex items-center gap-2 mb-1">
-            <Zap className="w-5 h-5" /> Automatické svetlo podľa rezervácií
-          </h2>
-          <p className="text-[12px] text-gray-400 font-medium">
-            Shelly Script sa spýta servera každú minútu — svetlo sa zapne <strong className="text-white">1 minútu po zaplatení</strong> a vypne <strong className="text-white">5 minút po uplynutí 1 hodiny od platby</strong> (65 min celkovo).
-          </p>
-        </div>
+      <div>
+        <h2 className="text-lg font-black uppercase tracking-widest text-green-400 flex items-center gap-2 mb-1">
+          <Zap className="w-5 h-5" /> Automatické svetlo podľa rezervácií
+        </h2>
+        <p className="text-[12px] text-gray-400 font-medium">
+          Hala: zapne sa <strong className="text-white">1 min po platbe</strong>, vypne po <strong className="text-white">65 min</strong>. &nbsp;|&nbsp;
+          Bar: svieti <strong className="text-white">0–10 min</strong> (príchod) a <strong className="text-white">60–75 min</strong> (odchod) od platby.
+        </p>
+      </div>
+
+      {/* Zone tabs */}
+      <div className="flex flex-wrap gap-2">
+        {ZONES.map(({ label }) => (
+          <button
+            key={label}
+            onClick={() => { setActiveZone(label); setCopied(false); }}
+            className={cn(
+              "px-3 py-1.5 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all border",
+              activeZone === label
+                ? "bg-green-600 text-white border-green-600"
+                : "bg-black text-gray-400 border-white/10 hover:border-green-600/40 hover:text-white"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Script preview */}
+      <div className="relative">
+        <pre className="bg-black rounded-xl p-4 text-[11px] font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed border border-green-900/40">
+          {script}
+        </pre>
         <button
           onClick={copy}
-          data-testid="button-copy-shelly-script"
-          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all shrink-0"
+          data-testid={`button-copy-shelly-script-${activeZone}`}
+          className="absolute top-3 right-3 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-600 text-white font-black text-[10px] uppercase tracking-widest hover:bg-green-700 transition-all"
         >
-          {copied ? <><Check className="w-4 h-4" /> Skopírované!</> : <><Copy className="w-4 h-4" /> Kopírovať Script</>}
+          {copied ? <><Check className="w-3 h-3" /> OK!</> : <><Copy className="w-3 h-3" /> Kopírovať</>}
         </button>
       </div>
 
-      <pre className="bg-black rounded-xl p-4 text-[11px] font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed border border-green-900/40">
-        {SHELLY_SCRIPT}
-      </pre>
-
-      <div className="bg-black/40 rounded-xl p-4 space-y-2">
-        <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">Ako nainštalovať (urob pre každé zariadenie)</h3>
+      <div className="bg-black/40 rounded-xl p-4">
+        <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">
+          Inštalácia — {activeZone} <span className="font-mono text-green-400 font-normal normal-case tracking-normal">({zoneIp})</span>
+        </h3>
         <ol className="text-[12px] text-gray-300 space-y-1.5 list-decimal list-inside font-medium">
-          <li>Otvor prehliadač a choď na <span className="font-mono text-green-400">https://192.168.0.160</span> (musíš byť na WiFi haly)</li>
-          <li>Prijmi bezpečnostné varovanie (Pokročilé → Pokračovať)</li>
-          <li>V menu zariadenia klikni na <span className="text-white font-bold">Scripts</span> (ikona <span className="font-mono">≡</span>)</li>
-          <li>Klikni <span className="text-white font-bold">+ Add Script</span>, vlož skopírovaný kód</li>
-          <li>Klikni <span className="text-white font-bold">Save</span> a potom <span className="text-white font-bold">▶ Start</span></li>
-          <li>Zopakuj pre zariadenia: <span className="font-mono text-green-400">.161, .163, .164</span></li>
+          <li>Otvor <span className="font-mono text-green-400">https://{zoneIp}</span> (musíš byť na WiFi haly)</li>
+          <li>Prijmi varovanie → Pokročilé → Pokračovať</li>
+          <li>V ľavom menu klikni ikonu <span className="font-mono">{"</>"}</span> Scripts → <strong>+ Add Script</strong></li>
+          <li>Vlož skopírovaný kód → <strong>Save</strong> → <strong>▶ Start</strong></li>
+          <li>Zopakuj pre každú zónu zvlášť (iný script pre každú!)</li>
         </ol>
       </div>
     </div>
