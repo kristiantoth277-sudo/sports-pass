@@ -153,8 +153,28 @@ export default function Admin() {
     refetchStatus();
   };
 
+  const [localStatuses, setLocalStatuses] = useState<Record<string, 'on' | 'off' | 'offline' | 'unknown'>>({});
+
+  // Try direct browser → Shelly HTTPS (Gen2 RPC), fallback to server-side
   const controlShelly = useMutation({
     mutationFn: async ({ zone, action }: { zone: string; action: string }) => {
+      const known = KNOWN_DEVICES[zone];
+      if (known?.ip) {
+        try {
+          const on = action === 'on';
+          const r = await fetch(`https://${known.ip}/rpc/Switch.Set?id=0&on=${on}`, {
+            signal: AbortSignal.timeout(4000),
+          });
+          if (r.ok) {
+            const d = await r.json();
+            setLocalStatuses(prev => ({ ...prev, [zone]: d.output ? 'on' : 'off' }));
+            return { message: `${zone} → ${on ? 'ZAP' : 'VYP'} (lokálne)` };
+          }
+        } catch {
+          // fall through to server-side
+        }
+      }
+      // Server-side fallback
       const res = await fetch("/api/admin/shelly/control", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-password": password },
@@ -165,13 +185,40 @@ export default function Admin() {
       return data;
     },
     onSuccess: (data) => {
-      toast({ title: "Shelly", description: data.message });
+      toast({ title: "✓ Shelly", description: data.message });
       refetchStatus();
     },
     onError: (err: any) => {
       toast({ title: "Chyba", description: err.message, variant: "destructive" });
     }
   });
+
+  // Poll local status directly from browser
+  useEffect(() => {
+    if (!isLoggedIn || activeTab !== 'shelly') return;
+    const poll = async () => {
+      for (const zone of ZONES) {
+        const known = KNOWN_DEVICES[zone.label];
+        if (!known?.ip) continue;
+        try {
+          const r = await fetch(`https://${known.ip}/rpc/Switch.GetStatus?id=0`, {
+            signal: AbortSignal.timeout(3000),
+          });
+          if (r.ok) {
+            const d = await r.json();
+            setLocalStatuses(prev => ({ ...prev, [zone.label]: d.output ? 'on' : 'off' }));
+          } else {
+            setLocalStatuses(prev => ({ ...prev, [zone.label]: 'offline' }));
+          }
+        } catch {
+          setLocalStatuses(prev => ({ ...prev, [zone.label]: 'offline' }));
+        }
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 10000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn, activeTab]);
 
   if (!isLoggedIn) {
     return (
@@ -327,36 +374,48 @@ export default function Admin() {
 
         {/* Shelly Control Tab */}
         {activeTab === 'shelly' && (
-          <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8">
-            <div className="flex items-center justify-between mb-8">
+          <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-6">
+            <div className="flex items-center justify-between">
               <h2 className="text-xl font-black uppercase tracking-widest flex items-center">
                 <Power className="w-6 h-6 mr-3 text-red-600" /> Ovládanie osvetlenia
               </h2>
-              <button
-                onClick={() => refetchStatus()}
-                disabled={statusLoading}
-                data-testid="button-refresh-status"
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-gray-400 hover:text-white text-xs font-black uppercase tracking-widest transition-all"
-              >
-                <RefreshCw className={cn("w-4 h-4", statusLoading && "animate-spin")} /> Obnoviť
-              </button>
             </div>
+
+            {/* One-time cert setup */}
+            <div className="bg-yellow-950/20 border border-yellow-600/20 rounded-2xl p-5">
+              <h3 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" /> Prvé použitie — Prijmi certifikát (raz pre každé zariadenie)
+              </h3>
+              <p className="text-[11px] text-gray-400 mb-3 font-medium">
+                Musíš byť pripojený na WiFi zariadenia (192.168.0.x). Otvor každý odkaz, klikni "Pokročilé" → "Pokračovať" a zatvor.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {ZONES.map(({ label }) => {
+                  const ip = KNOWN_DEVICES[label]?.ip;
+                  return ip ? (
+                    <a key={label} href={`https://${ip}`} target="_blank" rel="noopener noreferrer"
+                      className="px-3 py-1.5 rounded-lg bg-yellow-600/10 text-yellow-400 border border-yellow-600/20 text-[11px] font-black hover:bg-yellow-600 hover:text-white transition-all">
+                      {label} ({ip})
+                    </a>
+                  ) : null;
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {ZONES.map(({ label }) => {
-                const st = getStatusInfo(label);
+                const localStatus = localStatuses[label];
                 return (
-                  <div key={label} className="bg-black p-6 rounded-3xl border border-white/5 flex flex-col gap-4">
+                  <div key={label} className={cn(
+                    "bg-black p-6 rounded-3xl border flex flex-col gap-4 transition-all",
+                    localStatus === 'on' ? "border-green-600/30 shadow-[0_0_20px_-8px_rgba(22,163,74,0.4)]" : "border-white/5"
+                  )}>
                     <div className="flex items-center justify-between">
                       <span className="font-black text-white uppercase text-sm">{label}</span>
-                      <StatusBadge status={st?.status} loading={statusLoading} />
+                      <LocalStatusBadge status={localStatus} />
                     </div>
-                    {st?.ip && (
-                      <span className="text-[10px] text-gray-600 font-mono">{st.ip}</span>
-                    )}
-                    {st?.status === 'unconfigured' ? (
-                      <p className="text-[10px] text-yellow-500 font-bold">IP nie je nastavená</p>
-                    ) : (
-                      <div className="flex gap-2">
+                    <span className="text-[10px] text-gray-600 font-mono">{KNOWN_DEVICES[label]?.ip}</span>
+                    <div className="flex gap-2">
                         <button
                           data-testid={`button-shelly-on-${label}`}
                           onClick={() => controlShelly.mutate({ zone: label, action: 'on' })}
@@ -374,14 +433,10 @@ export default function Admin() {
                           OFF
                         </button>
                       </div>
-                    )}
                   </div>
                 );
               })}
             </div>
-            <p className="text-[11px] text-gray-600 mt-6 font-medium">
-              Status sa automaticky aktualizuje každých 15 sekúnd. Pre vzdialené ovládanie pripoj zariadenia k Shelly Cloudu (v appke: zariadenie → ☁ ikona → Enable cloud). Zariadenia: Gen 4 • 192.168.0.160–164
-            </p>
           </section>
         )}
 
@@ -558,6 +613,25 @@ function StatusBadge({ status, loading }: { status?: string; loading?: boolean }
   if (status === 'on') return (
     <span className="text-[10px] font-black uppercase text-green-400 flex items-center gap-1">
       <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" /> ON
+    </span>
+  );
+  return (
+    <span className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-1">
+      <span className="w-2 h-2 rounded-full bg-gray-600 inline-block" /> OFF
+    </span>
+  );
+}
+
+function LocalStatusBadge({ status }: { status?: 'on' | 'off' | 'offline' | 'unknown' }) {
+  if (!status) return <span className="text-[10px] font-black uppercase text-gray-600">—</span>;
+  if (status === 'on') return (
+    <span className="text-[10px] font-black uppercase text-green-400 flex items-center gap-1">
+      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" /> ON
+    </span>
+  );
+  if (status === 'offline') return (
+    <span className="text-[10px] font-black uppercase text-red-500 flex items-center gap-1">
+      <WifiOff className="w-3 h-3" /> OFFLINE
     </span>
   );
   return (
