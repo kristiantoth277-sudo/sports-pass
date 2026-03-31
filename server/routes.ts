@@ -484,39 +484,66 @@ export async function registerRoutes(
     res.json({ success: true, qrCodeData: qrData });
   });
 
+  // Known device data (Shelly 1 PM Mini Gen 4) — seeded from device info screenshots
+  const KNOWN_DEVICES: Record<string, { ip: string; id: string }> = {
+    'Svetlo hala': { ip: '192.168.0.160', id: 'e4b0636a5bc8' },
+    'Hala2':       { ip: '192.168.0.161', id: 'e4b063740efc' },
+    'Hala3':       { ip: '192.168.0.163', id: 'e4b06375cb3c' },
+    'Bar bar':     { ip: '192.168.0.164', id: 'e4b063787f7c' },
+  };
+
   // Helper: zone name → settings key
   const zoneKey = (zone: string) => zone.toLowerCase().replace(/\s+/g, '_') + '_ip';
 
-  // Helper: call Shelly Gen1 HTTP API
-  async function shellyRequest(ip: string, path: string): Promise<{ ok: boolean; data?: any; error?: string }> {
+  // Helper: get zone IP — from DB or fallback to known devices
+  async function getZoneConfig(zone: string, settings: any[]): Promise<{ ip: string; id: string }> {
+    const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
+    const ip = getSetting(zoneKey(zone)) || KNOWN_DEVICES[zone]?.ip || '';
+    const idKey = zoneKey(zone).replace('_ip', '_id');
+    const id = getSetting(idKey) || KNOWN_DEVICES[zone]?.id || '';
+    return { ip, id };
+  }
+
+  // Helper: call Shelly Gen2 local HTTP RPC API
+  async function shellyGen2Request(ip: string, method: string, params: Record<string, any>): Promise<{ ok: boolean; data?: any; error?: string }> {
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 4000);
-      const r = await fetch(`http://${ip}${path}`, { signal: controller.signal });
+      const paramStr = Object.entries(params).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`).join('&');
+      const r = await fetch(`http://${ip}/rpc/${method}?${paramStr}`, { signal: controller.signal });
       clearTimeout(timeout);
       const data = await r.json();
+      if (data.error) return { ok: false, error: data.error.message || JSON.stringify(data.error) };
       return { ok: true, data };
     } catch (err: any) {
       return { ok: false, error: err.message || 'Nedostupné' };
     }
   }
 
-  // Helper: call Shelly Cloud API
-  async function shellyCloudRequest(server: string, path: string, body: Record<string, string>): Promise<{ ok: boolean; data?: any; error?: string }> {
+  // Helper: call Shelly Gen2 Cloud RPC API
+  async function shellyGen2CloudRequest(server: string, deviceId: string, method: string, params: Record<string, any>): Promise<{ ok: boolean; data?: any; error?: string }> {
     try {
+      const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
+      if (!authKey) return { ok: false, error: 'No auth key' };
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
-      const formBody = Object.entries(body).map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join('&');
-      const r = await fetch(`https://${server}${path}`, {
+      const body = new URLSearchParams({
+        auth_key: authKey,
+        id: deviceId,
+        src: 'zaramia-admin',
+        method,
+        params: JSON.stringify(params),
+      });
+      const r = await fetch(`https://${server}/device/rpc`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formBody,
+        body: body.toString(),
         signal: controller.signal,
       });
       clearTimeout(timeout);
       const data = await r.json();
       if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
-      return { ok: true, data };
+      return { ok: true, data: data.data };
     } catch (err: any) {
       return { ok: false, error: err.message || 'Nedostupné' };
     }
@@ -529,36 +556,30 @@ export async function registerRoutes(
     }
     const settings = await storage.getShellySettings();
     const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
-
-    const idKey = zoneKey(zone).replace('_ip', '_id');
-    const deviceId = getSetting(idKey);
+    const { ip, id: deviceId } = await getZoneConfig(zone, settings);
     const server = getSetting('shelly_server');
-    const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
+    const on = action === 'on';
 
-    // Try Cloud API first
-    if (deviceId && server && authKey) {
-      const result = await shellyCloudRequest(server, '/device/relay/control', {
-        auth_key: authKey, id: deviceId, channel: '0', turn: action,
-      });
+    // Try Gen2 Cloud RPC first (if cloud connected)
+    if (deviceId && server) {
+      const result = await shellyGen2CloudRequest(server, deviceId, 'Switch.Set', { id: 0, on });
       if (result.ok) {
-        console.log(`Shelly Cloud Control: ${zone} (${deviceId}) → ${action}`);
-        return res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'} (Cloud)` });
+        console.log(`Shelly Cloud Gen2 Control: ${zone} (${deviceId}) → ${action}`);
+        return res.json({ success: true, message: `Zóna "${zone}" bola ${on ? 'zapnutá' : 'vypnutá'} (Cloud)` });
       }
-      console.warn(`Shelly Cloud failed for ${zone}: ${result.error}, falling back to local...`);
+      console.warn(`Shelly Cloud Gen2 failed for ${zone}: ${result.error}`);
     }
 
-    // Fallback: local IP
-    const ipKey = zoneKey(zone);
-    const ip = getSetting(ipKey);
+    // Fallback: Gen2 local HTTP RPC
     if (!ip) {
-      return res.status(400).json({ message: `Zariadenie "${zone}" nie je nakonfigurované (chýba Device ID alebo IP adresa)` });
+      return res.status(400).json({ message: `Zariadenie "${zone}" nie je dostupné` });
     }
-    const localResult = await shellyRequest(ip, `/relay/0?turn=${action}`);
+    const localResult = await shellyGen2Request(ip, 'Switch.Set', { id: 0, on });
     if (!localResult.ok) {
-      return res.status(502).json({ message: `Shelly nedostupné (Cloud aj lokálna sieť): ${localResult.error}` });
+      return res.status(502).json({ message: `Shelly nedostupné: ${localResult.error}` });
     }
-    console.log(`Shelly Local Control: ${zone} (${ip}) → ${action}`);
-    res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'} (Lokálne)` });
+    console.log(`Shelly Local Gen2 Control: ${zone} (${ip}) → ${action}`);
+    res.json({ success: true, message: `Zóna "${zone}" bola ${on ? 'zapnutá' : 'vypnutá'} (Lokálne)` });
   });
 
   app.get("/api/admin/shelly/status", isAuthenticated, isAdmin, async (req, res) => {
@@ -566,29 +587,24 @@ export async function registerRoutes(
     const zones = ['Svetlo hala', 'Hala2', 'Hala3', 'Bar bar'];
     const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
     const server = getSetting('shelly_server');
-    const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
 
     const statuses = await Promise.all(zones.map(async (zone) => {
-      const idKey = zoneKey(zone).replace('_ip', '_id');
-      const deviceId = getSetting(idKey);
-      const ip = getSetting(zoneKey(zone));
+      const { ip, id: deviceId } = await getZoneConfig(zone, settings);
 
-      // Try Cloud first
-      if (deviceId && server && authKey) {
-        const result = await shellyCloudRequest(server, '/device/relay/status', {
-          auth_key: authKey, id: deviceId, channel: '0',
-        });
+      // Try Gen2 Cloud first
+      if (deviceId && server) {
+        const result = await shellyGen2CloudRequest(server, deviceId, 'Switch.GetStatus', { id: 0 });
         if (result.ok) {
-          const ison = result.data?.data?.device_status?.output ?? result.data?.data?.ison;
-          return { zone, deviceId, server, mode: 'cloud', status: ison ? 'on' : 'off' };
+          const ison = result.data?.output;
+          return { zone, deviceId, server, mode: 'cloud', status: ison ? 'on' : 'off', ip };
         }
       }
 
-      // Fallback: local IP
+      // Fallback: Gen2 local HTTP RPC
       if (!ip) return { zone, status: 'unconfigured' };
-      const result = await shellyRequest(ip, '/relay/0');
+      const result = await shellyGen2Request(ip, 'Switch.GetStatus', { id: 0 });
       if (!result.ok) return { zone, ip, mode: 'local', status: 'offline', error: result.error };
-      return { zone, ip, mode: 'local', status: result.data?.ison ? 'on' : 'off' };
+      return { zone, ip, deviceId, mode: 'local', status: result.data?.output ? 'on' : 'off' };
     }));
     res.json(statuses);
   });

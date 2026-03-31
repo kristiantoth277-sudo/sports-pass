@@ -12,6 +12,13 @@ const ZONES = [
   { label: 'Bar bar',     ipKey: 'bar_bar_ip',      idKey: 'bar_bar_id' },
 ];
 
+const KNOWN_DEVICES: Record<string, { ip: string; id: string }> = {
+  'Svetlo hala': { ip: '192.168.0.160', id: 'e4b0636a5bc8' },
+  'Hala2':       { ip: '192.168.0.161', id: 'e4b063740efc' },
+  'Hala3':       { ip: '192.168.0.163', id: 'e4b06375cb3c' },
+  'Bar bar':     { ip: '192.168.0.164', id: 'e4b063787f7c' },
+};
+
 export default function Admin() {
   const [password, setPassword] = useState("");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -45,11 +52,20 @@ export default function Admin() {
   } as any);
 
   useEffect(() => {
-    if (shellySettings && Array.isArray(shellySettings)) {
-      const map: Record<string, string> = {};
-      shellySettings.forEach((s: any) => { map[s.key] = s.value; });
-      setIpInputs(map);
+    // Start with known device defaults
+    const defaults: Record<string, string> = {};
+    for (const zone of ZONES) {
+      const known = KNOWN_DEVICES[zone.label];
+      if (known) {
+        defaults[zone.ipKey] = known.ip;
+        defaults[zone.idKey] = known.id;
+      }
     }
+    // Override with saved DB settings
+    if (shellySettings && Array.isArray(shellySettings)) {
+      shellySettings.forEach((s: any) => { if (s.value) defaults[s.key] = s.value; });
+    }
+    setIpInputs(defaults);
   }, [shellySettings]);
 
   const markPaid = useMutation({
@@ -364,7 +380,7 @@ export default function Admin() {
               })}
             </div>
             <p className="text-[11px] text-gray-600 mt-6 font-medium">
-              Status sa automaticky aktualizuje každých 15 sekúnd. Shelly zariadenia musia byť dostupné v rovnakej sieti ako server.
+              Status sa automaticky aktualizuje každých 15 sekúnd. Pre vzdialené ovládanie pripoj zariadenia k Shelly Cloudu (v appke: zariadenie → ☁ ikona → Enable cloud). Zariadenia: Gen 4 • 192.168.0.160–164
             </p>
           </section>
         )}
