@@ -824,7 +824,7 @@ async function syncFacilities() {
     { id: 3, isComingSoon: false, pricePerHour: 1250, name: "Badminton – Kurt 3", description: "Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.", imageUrl: "/images/badminton.jpg" },
     { id: 4, isComingSoon: false, pricePerHour: 1250, name: "Bowling – Dráha 1", description: "Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.", imageUrl: "/images/bowling.jpg" },
     { id: 5, isComingSoon: false, pricePerHour: 1250, name: "Bowling – Dráha 2", description: "Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.", imageUrl: "/images/bowling.jpg" },
-    { id: 6, isComingSoon: false, pricePerHour: 1000, name: "Stolný tenis – Stôl 1", description: "Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.", imageUrl: "/images/stolny-tenis.jpg" },
+    { id: 6, isComingSoon: false, pricePerHour: 1000, name: "Stolný tenis – Stôl 1", description: "Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.", imageUrl: "/images/table-tennis-new.jpg" },
     { id: 7, isComingSoon: false, pricePerHour: 1000, name: "VR Zóna – Meta Quest 3", description: "Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.", imageUrl: "https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800" },
   ];
   for (const u of updates) {
