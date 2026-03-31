@@ -485,7 +485,7 @@ export async function registerRoutes(
   });
 
   // Helper: zone name → settings key
-  const zoneKey = (zone: string) => zone.toLowerCase().replace(/\s+/g, '') + '_ip';
+  const zoneKey = (zone: string) => zone.toLowerCase().replace(/\s+/g, '_') + '_ip';
 
   // Helper: call Shelly Gen1 HTTP API
   async function shellyRequest(ip: string, path: string): Promise<{ ok: boolean; data?: any; error?: string }> {
@@ -522,7 +522,7 @@ export async function registerRoutes(
 
   app.get("/api/admin/shelly/status", isAuthenticated, isAdmin, async (req, res) => {
     const settings = await storage.getShellySettings();
-    const zones = ['Kurt 1', 'Kurt 2', 'Chodba', 'Terasa'];
+    const zones = ['Svetlo hala', 'Hala2', 'Hala3', 'Bar bar'];
     const statuses = await Promise.all(zones.map(async (zone) => {
       const key = zoneKey(zone);
       const ipSetting = settings.find((s: any) => s.key === key);

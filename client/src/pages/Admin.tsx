@@ -6,10 +6,10 @@ import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard,
 import { useToast } from "@/hooks/use-toast";
 
 const ZONES = [
-  { label: 'Kurt 1', key: 'kurt1_ip' },
-  { label: 'Kurt 2', key: 'kurt2_ip' },
-  { label: 'Chodba', key: 'chodba_ip' },
-  { label: 'Terasa', key: 'terasa_ip' },
+  { label: 'Svetlo hala', key: 'svetlo_hala_ip' },
+  { label: 'Hala2', key: 'hala2_ip' },
+  { label: 'Hala3', key: 'hala3_ip' },
+  { label: 'Bar bar', key: 'bar_bar_ip' },
 ];
 
 export default function Admin() {
