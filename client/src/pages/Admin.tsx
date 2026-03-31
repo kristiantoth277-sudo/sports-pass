@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sk } from "date-fns/locale";
-import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard, Wifi, WifiOff, AlertCircle, Save, RefreshCw } from "lucide-react";
+import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard, Wifi, WifiOff, AlertCircle, Save, RefreshCw, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ZONES = [
@@ -20,6 +20,8 @@ export default function Admin() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<'bookings' | 'shelly' | 'settings'>('bookings');
   const [ipInputs, setIpInputs] = useState<Record<string, string>>({});
+  const [discoveredDevices, setDiscoveredDevices] = useState<any[]>([]);
+  const [isDiscovering, setIsDiscovering] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -88,6 +90,40 @@ export default function Admin() {
       toast({ title: "Chyba", description: err.message, variant: "destructive" });
     }
   });
+
+  const discoverDevices = async () => {
+    setIsDiscovering(true);
+    setDiscoveredDevices([]);
+    try {
+      const res = await fetch("/api/admin/shelly/discover", {
+        headers: { "x-admin-password": password }
+      });
+      const data = await res.json();
+      if (data.success && data.devices.length > 0) {
+        setDiscoveredDevices(data.devices);
+        // Auto-fill server
+        if (data.server) {
+          setIpInputs(prev => ({ ...prev, shelly_server: data.server }));
+        }
+        // Auto-map device IDs by name match
+        const newInputs: Record<string, string> = { shelly_server: data.server };
+        for (const zone of ZONES) {
+          const matched = data.devices.find((d: any) =>
+            d.name?.toLowerCase() === zone.label.toLowerCase()
+          );
+          if (matched) newInputs[zone.idKey] = matched.id;
+        }
+        setIpInputs(prev => ({ ...prev, ...newInputs }));
+        toast({ title: `Nájdených ${data.devices.length} zariadení`, description: "Skontroluj priradenie a ulož nastavenia." });
+      } else {
+        toast({ title: "Žiadne zariadenia", description: data.message || "Zapni API integráciu v Shelly aplikácii.", variant: "destructive" });
+      }
+    } catch {
+      toast({ title: "Chyba", description: "Nepodarilo sa spojiť so Shelly Cloud", variant: "destructive" });
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
 
   const saveAllSettings = async () => {
     const keysToSave: string[] = [];
@@ -336,13 +372,77 @@ export default function Admin() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-8">
-            <div>
-              <h2 className="text-xl font-black uppercase tracking-widest mb-1 flex items-center">
-                <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly Nastavenia
-              </h2>
-              <p className="text-gray-500 text-sm font-medium">
-                Nastav Shelly Cloud (Device ID) alebo lokálnu sieť (IP adresa) pre každé zariadenie.
-              </p>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-black uppercase tracking-widest mb-1 flex items-center">
+                  <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly Nastavenia
+                </h2>
+                <p className="text-gray-500 text-sm font-medium">
+                  Po zapnutí API integrácie v Shelly appke klikni Discover — zariadenia sa nájdu automaticky.
+                </p>
+              </div>
+              <button
+                onClick={discoverDevices}
+                disabled={isDiscovering}
+                data-testid="button-shelly-discover"
+                className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 text-white font-black uppercase tracking-widest hover:bg-blue-700 transition-all disabled:opacity-50 shrink-0"
+              >
+                {isDiscovering ? <Loader2 className="w-5 h-5 animate-spin" /> : <Zap className="w-5 h-5" />}
+                Discover zariadenia
+              </button>
+            </div>
+
+            {/* Discovered devices */}
+            {discoveredDevices.length > 0 && (
+              <div className="bg-blue-950/30 border border-blue-600/20 rounded-2xl p-5">
+                <h3 className="text-xs font-black uppercase tracking-widest text-blue-400 mb-4">
+                  Nájdené zariadenia ({discoveredDevices.length})
+                </h3>
+                <div className="space-y-2">
+                  {discoveredDevices.map((d) => (
+                    <div key={d.id} className="flex items-center justify-between gap-4 bg-black/40 rounded-xl px-4 py-3">
+                      <div>
+                        <span className="text-white font-bold text-sm">{d.name}</span>
+                        <span className="text-gray-500 text-[10px] font-mono ml-3">{d.id}</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className={cn("text-[10px] font-black uppercase", d.online ? "text-green-400" : "text-gray-500")}>
+                          {d.online ? "● Online" : "○ Offline"}
+                        </span>
+                        {/* Quick assign buttons */}
+                        <select
+                          className="bg-zinc-900 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white font-bold"
+                          defaultValue=""
+                          onChange={(e) => {
+                            if (e.target.value) {
+                              setIpInputs(prev => ({ ...prev, [e.target.value]: d.id }));
+                              toast({ title: `${d.name} priradený`, description: ZONES.find(z => z.idKey === e.target.value)?.label });
+                            }
+                          }}
+                        >
+                          <option value="">Priraď k zóne...</option>
+                          {ZONES.map(z => <option key={z.idKey} value={z.idKey}>{z.label}</option>)}
+                        </select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Instructions */}
+            <div className="bg-yellow-950/20 border border-yellow-600/20 rounded-2xl p-5">
+              <h3 className="text-xs font-black uppercase tracking-widest text-yellow-500 mb-3 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4" /> Ako aktivovať API integráciu
+              </h3>
+              <ol className="text-xs text-gray-400 space-y-1.5 font-medium list-decimal list-inside">
+                <li>Otvor Shelly aplikáciu</li>
+                <li>Klikni na zariadenie (Svetlo hala, Hala2, atď.)</li>
+                <li>Prejdi do <span className="text-white font-bold">⚙ Settings → Integration</span></li>
+                <li>Zapni <span className="text-white font-bold">Allow access</span></li>
+                <li>Opakuj pre každé zariadenie</li>
+                <li>Potom klikni tlačidlo <span className="text-blue-400 font-bold">Discover zariadenia</span> vyššie</li>
+              </ol>
             </div>
 
             {/* Cloud API section */}

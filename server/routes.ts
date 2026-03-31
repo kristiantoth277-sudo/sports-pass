@@ -593,6 +593,46 @@ export async function registerRoutes(
     res.json(statuses);
   });
 
+  // Discover Shelly Cloud devices
+  app.get("/api/admin/shelly/discover", isAuthenticated, isAdmin, async (req, res) => {
+    const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
+    if (!authKey) return res.status(400).json({ message: "SHELLY_CLOUD_AUTH_KEY nie je nastavený" });
+
+    // Try api.shelly.cloud first, then EU servers
+    const endpoints = [
+      'https://api.shelly.cloud',
+      'https://shelly-97-eu.shelly.cloud',
+      'https://shelly-1-eu.shelly.cloud',
+      'https://shelly-2-eu.shelly.cloud',
+    ];
+
+    for (const base of endpoints) {
+      try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const r = await fetch(`${base}/interface/device/list`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `auth_key=${encodeURIComponent(authKey)}&show_info=1`,
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const data = await r.json();
+        if (data.isok && data.data?.devices) {
+          const devices = Object.entries(data.data.devices).map(([id, info]: any) => ({
+            id,
+            name: info.name || info._name || id,
+            type: info.type || info.code,
+            online: info.online,
+            server: base.replace('https://', ''),
+          }));
+          return res.json({ success: true, server: base.replace('https://', ''), devices });
+        }
+      } catch {}
+    }
+    res.json({ success: false, devices: [], message: "Žiadne zariadenia nenájdené. Skontroluj či máš zapnutú API integráciu v Shelly aplikácii: zariadenie → ⚙ → Integration → Allow access." });
+  });
+
   // Public schedule endpoint - shows bookings for a given date
   app.get("/api/schedule", async (req, res) => {
     const dateStr = req.query.date as string;
