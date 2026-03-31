@@ -484,14 +484,54 @@ export async function registerRoutes(
     res.json({ success: true, qrCodeData: qrData });
   });
 
-  app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {
-    if (!ENABLE_SHELLY) {
-      return res.status(400).json({ message: "Ovládanie Shelly je momentálne zakázané (ENABLE_SHELLY=false)" });
+  // Helper: zone name → settings key
+  const zoneKey = (zone: string) => zone.toLowerCase().replace(/\s+/g, '') + '_ip';
+
+  // Helper: call Shelly Gen1 HTTP API
+  async function shellyRequest(ip: string, path: string): Promise<{ ok: boolean; data?: any; error?: string }> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4000);
+      const r = await fetch(`http://${ip}${path}`, { signal: controller.signal });
+      clearTimeout(timeout);
+      const data = await r.json();
+      return { ok: true, data };
+    } catch (err: any) {
+      return { ok: false, error: err.message || 'Nedostupné' };
     }
+  }
+
+  app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {
     const { zone, action } = req.body;
-    // Mock control logic
-    console.log(`Shelly Control: Zone ${zone}, Action ${action}`);
-    res.json({ success: true, message: `Zóna ${zone} bola ${action === 'on' ? 'zapnutá' : 'vypnutá'}` });
+    if (!zone || !['on', 'off'].includes(action)) {
+      return res.status(400).json({ message: "Neplatné parametre" });
+    }
+    const settings = await storage.getShellySettings();
+    const key = zoneKey(zone);
+    const ipSetting = settings.find((s: any) => s.key === key);
+    if (!ipSetting?.value) {
+      return res.status(400).json({ message: `IP adresa pre zónu "${zone}" nie je nastavená` });
+    }
+    const result = await shellyRequest(ipSetting.value, `/relay/0?turn=${action}`);
+    if (!result.ok) {
+      return res.status(502).json({ message: `Shelly zariadenie nedostupné: ${result.error}` });
+    }
+    console.log(`Shelly Control: Zone ${zone} (${ipSetting.value}), Action ${action}`);
+    res.json({ success: true, message: `Zóna "${zone}" bola ${action === 'on' ? 'zapnutá' : 'vypnutá'}`, data: result.data });
+  });
+
+  app.get("/api/admin/shelly/status", isAuthenticated, isAdmin, async (req, res) => {
+    const settings = await storage.getShellySettings();
+    const zones = ['Kurt 1', 'Kurt 2', 'Chodba', 'Terasa'];
+    const statuses = await Promise.all(zones.map(async (zone) => {
+      const key = zoneKey(zone);
+      const ipSetting = settings.find((s: any) => s.key === key);
+      if (!ipSetting?.value) return { zone, ip: null, status: 'unconfigured' };
+      const result = await shellyRequest(ipSetting.value, '/relay/0');
+      if (!result.ok) return { zone, ip: ipSetting.value, status: 'offline', error: result.error };
+      return { zone, ip: ipSetting.value, status: result.data?.ison ? 'on' : 'off' };
+    }));
+    res.json(statuses);
   });
 
   // Public schedule endpoint - shows bookings for a given date
