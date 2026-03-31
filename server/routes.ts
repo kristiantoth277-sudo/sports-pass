@@ -649,6 +649,39 @@ export async function registerRoutes(
     res.json({ success: false, devices: [], message: "Žiadne zariadenia nenájdené. Skontroluj či máš zapnutú API integráciu v Shelly aplikácii: zariadenie → ⚙ → Integration → Allow access." });
   });
 
+  // Shelly auto-check endpoint — called by Shelly Script every 60s
+  // Returns {"on": true/false} based on active bookings (±buffer minutes)
+  app.get("/api/shelly/check", async (req, res) => {
+    const BUFFER_BEFORE = 20 * 60 * 1000; // 20 min before booking
+    const BUFFER_AFTER  = 10 * 60 * 1000; // 10 min after booking ends
+    const now = Date.now();
+
+    try {
+      const allBookings = await storage.getAllBookings();
+      const active = allBookings.some(({ booking }: any) => {
+        if (!booking || booking.status === 'cancelled') return false;
+        const start = new Date(booking.startTime).getTime() - BUFFER_BEFORE;
+        const end   = new Date(booking.endTime).getTime()   + BUFFER_AFTER;
+        return now >= start && now <= end;
+      });
+
+      // Find next/current booking reason
+      const upcoming = allBookings
+        .filter(({ booking, facility }: any) => {
+          if (!booking || booking.status === 'cancelled') return false;
+          const start = new Date(booking.startTime).getTime() - BUFFER_BEFORE;
+          const end   = new Date(booking.endTime).getTime()   + BUFFER_AFTER;
+          return now >= start && now <= end;
+        })
+        .map(({ booking, facility }: any) => `${facility?.name || ''} ${new Date(booking.startTime).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}–${new Date(booking.endTime).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}`)
+        .join(', ');
+
+      res.json({ on: active, reason: active ? upcoming : 'Žiadna rezervácia' });
+    } catch (err: any) {
+      res.status(500).json({ on: false, reason: 'Chyba servera' });
+    }
+  });
+
   // Public schedule endpoint - shows bookings for a given date
   app.get("/api/schedule", async (req, res) => {
     const dateStr = req.query.date as string;

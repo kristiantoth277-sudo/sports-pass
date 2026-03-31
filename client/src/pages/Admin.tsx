@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { sk } from "date-fns/locale";
-import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard, Wifi, WifiOff, AlertCircle, Save, RefreshCw, Zap } from "lucide-react";
+import { Loader2, Search, Power, Settings as SettingsIcon, Calendar, CreditCard, Wifi, WifiOff, AlertCircle, Save, RefreshCw, Zap, Copy, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const ZONES = [
@@ -443,13 +443,17 @@ export default function Admin() {
         {/* Settings Tab */}
         {activeTab === 'settings' && (
           <section className="bg-zinc-900 border border-white/5 rounded-[2.5rem] p-8 space-y-8">
+
+            {/* Shelly Auto Script */}
+            <ShellyScriptSection />
+
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div>
                 <h2 className="text-xl font-black uppercase tracking-widest mb-1 flex items-center">
-                  <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly Nastavenia
+                  <SettingsIcon className="w-6 h-6 mr-3 text-red-600" /> Shelly Nastavenia (manuálne)
                 </h2>
                 <p className="text-gray-500 text-sm font-medium">
-                  Po zapnutí API integrácie v Shelly appke klikni Discover — zariadenia sa nájdu automaticky.
+                  Voliteľné — pre manuálne priradenie Device ID a IP adries.
                 </p>
               </div>
               <button
@@ -619,6 +623,82 @@ function StatusBadge({ status, loading }: { status?: string; loading?: boolean }
     <span className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-1">
       <span className="w-2 h-2 rounded-full bg-gray-600 inline-block" /> OFF
     </span>
+  );
+}
+
+const SHELLY_SCRIPT = `// Zaramia Auto-Svetlo Script
+// Nahraj na kazde Shelly zariadenie:
+// Otvor https://<IP zariadenia> -> Scripts -> + Add Script
+// Vloz tento kod, klikni Save + Start
+
+let URL = "https://zaramia.sk/api/shelly/check";
+let INTERVAL = 60000; // 60 sekund
+
+function checkAndSet() {
+  Shelly.call("HTTP.Request", {
+    method: "GET",
+    url: URL,
+    timeout: 10,
+    ssl_ca: "*"
+  }, function(res, err) {
+    if (err === 0 && res && res.code === 200) {
+      let data = JSON.parse(res.body);
+      Shelly.call("Switch.Set", {id: 0, on: data.on});
+      print("Svetlo:", data.on ? "ZAP" : "VYP", "-", data.reason);
+    } else {
+      print("Chyba HTTP:", err);
+    }
+  });
+}
+
+checkAndSet();
+Timer.set(INTERVAL, true, checkAndSet);`;
+
+function ShellyScriptSection() {
+  const [copied, setCopied] = useState(false);
+
+  const copy = () => {
+    navigator.clipboard.writeText(SHELLY_SCRIPT);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className="bg-green-950/20 border border-green-600/20 rounded-2xl p-6 space-y-4">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-black uppercase tracking-widest text-green-400 flex items-center gap-2 mb-1">
+            <Zap className="w-5 h-5" /> Automatické svetlo podľa rezervácií
+          </h2>
+          <p className="text-[12px] text-gray-400 font-medium">
+            Shelly Script sa spýta servera každú minútu či je aktívna rezervácia — a zapne/vypne svetlo. Svetlo sa zapne 20 min pred rezerváciou a vypne 10 min po skončení.
+          </p>
+        </div>
+        <button
+          onClick={copy}
+          data-testid="button-copy-shelly-script"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-600 text-white font-black text-xs uppercase tracking-widest hover:bg-green-700 transition-all shrink-0"
+        >
+          {copied ? <><Check className="w-4 h-4" /> Skopírované!</> : <><Copy className="w-4 h-4" /> Kopírovať Script</>}
+        </button>
+      </div>
+
+      <pre className="bg-black rounded-xl p-4 text-[11px] font-mono text-green-300 overflow-x-auto whitespace-pre leading-relaxed border border-green-900/40">
+        {SHELLY_SCRIPT}
+      </pre>
+
+      <div className="bg-black/40 rounded-xl p-4 space-y-2">
+        <h3 className="text-xs font-black uppercase tracking-widest text-white mb-3">Ako nainštalovať (urob pre každé zariadenie)</h3>
+        <ol className="text-[12px] text-gray-300 space-y-1.5 list-decimal list-inside font-medium">
+          <li>Otvor prehliadač a choď na <span className="font-mono text-green-400">https://192.168.0.160</span> (musíš byť na WiFi haly)</li>
+          <li>Prijmi bezpečnostné varovanie (Pokročilé → Pokračovať)</li>
+          <li>V menu zariadenia klikni na <span className="text-white font-bold">Scripts</span> (ikona <span className="font-mono">≡</span>)</li>
+          <li>Klikni <span className="text-white font-bold">+ Add Script</span>, vlož skopírovaný kód</li>
+          <li>Klikni <span className="text-white font-bold">Save</span> a potom <span className="text-white font-bold">▶ Start</span></li>
+          <li>Zopakuj pre zariadenia: <span className="font-mono text-green-400">.161, .163, .164</span></li>
+        </ol>
+      </div>
+    </div>
   );
 }
 
