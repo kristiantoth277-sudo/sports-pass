@@ -27,6 +27,7 @@ export const bookings = pgTable("bookings", {
   qrCodeData: text("qr_code_data"),
   totalPrice: integer("total_price").notNull(), // in cents
   besteronPaymentId: text("besteron_payment_id"), // Besteron paymentIntentId
+  paidAt: timestamp("paid_at"), // When payment was confirmed
 });
 
 export const shellySettings = pgTable("shelly_settings", {

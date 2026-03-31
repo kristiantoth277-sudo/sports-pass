@@ -78,7 +78,8 @@ export class DatabaseStorage implements IStorage {
       .update(bookings)
       .set({ 
         status, 
-        ...(qrCodeData && { qrCodeData }) 
+        ...(qrCodeData && { qrCodeData }),
+        ...(status === 'paid' && { paidAt: new Date() }),
       })
       .where(eq(bookings.id, id))
       .returning();

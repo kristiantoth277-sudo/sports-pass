@@ -671,7 +671,7 @@ function ShellyScriptSection() {
             <Zap className="w-5 h-5" /> Automatické svetlo podľa rezervácií
           </h2>
           <p className="text-[12px] text-gray-400 font-medium">
-            Shelly Script sa spýta servera každú minútu či je aktívna rezervácia — a zapne/vypne svetlo. Svetlo sa zapne 20 min pred rezerváciou a vypne 10 min po skončení.
+            Shelly Script sa spýta servera každú minútu — svetlo sa zapne <strong className="text-white">1 minútu po zaplatení</strong> a vypne <strong className="text-white">5 minút po uplynutí 1 hodiny od platby</strong> (65 min celkovo).
           </p>
         </div>
         <button

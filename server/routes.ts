@@ -650,33 +650,32 @@ export async function registerRoutes(
   });
 
   // Shelly auto-check endpoint — called by Shelly Script every 60s
-  // Returns {"on": true/false} based on active bookings (±buffer minutes)
+  // Lights ON: 1 min after payment, OFF: 65 min after payment (1h + 5 min buffer)
   app.get("/api/shelly/check", async (req, res) => {
-    const BUFFER_BEFORE = 20 * 60 * 1000; // 20 min before booking
-    const BUFFER_AFTER  = 10 * 60 * 1000; // 10 min after booking ends
+    const DELAY_ON  =  1 * 60 * 1000; //  1 min after payment → turn on
+    const DELAY_OFF = 65 * 60 * 1000; // 65 min after payment → turn off (1h + 5 min)
     const now = Date.now();
 
     try {
       const allBookings = await storage.getAllBookings();
-      const active = allBookings.some(({ booking }: any) => {
-        if (!booking || booking.status === 'cancelled') return false;
-        const start = new Date(booking.startTime).getTime() - BUFFER_BEFORE;
-        const end   = new Date(booking.endTime).getTime()   + BUFFER_AFTER;
-        return now >= start && now <= end;
+
+      const activeBooking = allBookings.find(({ booking }: any) => {
+        if (!booking || booking.status !== 'paid' || !booking.paidAt) return false;
+        const paidTime = new Date(booking.paidAt).getTime();
+        return now >= paidTime + DELAY_ON && now <= paidTime + DELAY_OFF;
       });
 
-      // Find next/current booking reason
-      const upcoming = allBookings
-        .filter(({ booking, facility }: any) => {
-          if (!booking || booking.status === 'cancelled') return false;
-          const start = new Date(booking.startTime).getTime() - BUFFER_BEFORE;
-          const end   = new Date(booking.endTime).getTime()   + BUFFER_AFTER;
-          return now >= start && now <= end;
-        })
-        .map(({ booking, facility }: any) => `${facility?.name || ''} ${new Date(booking.startTime).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}–${new Date(booking.endTime).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' })}`)
-        .join(', ');
+      if (activeBooking) {
+        const { booking, facility } = activeBooking as any;
+        const paidTime = new Date(booking.paidAt).getTime();
+        const offAt = new Date(paidTime + DELAY_OFF).toLocaleTimeString('sk-SK', { hour: '2-digit', minute: '2-digit' });
+        return res.json({
+          on: true,
+          reason: `${facility?.name || 'Rezervácia'} — svetlo do ${offAt}`,
+        });
+      }
 
-      res.json({ on: active, reason: active ? upcoming : 'Žiadna rezervácia' });
+      res.json({ on: false, reason: 'Žiadna aktívna rezervácia' });
     } catch (err: any) {
       res.status(500).json({ on: false, reason: 'Chyba servera' });
     }
