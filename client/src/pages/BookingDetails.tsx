@@ -202,7 +202,7 @@ export default function BookingDetails() {
                   </span>
                 ))}
               </div>
-              <p className="text-[10px] text-gray-600 mt-3 font-medium">Zadajte na klávesnici pri vstupe do haly</p>
+              <p className="text-[10px] text-gray-500 mt-3 font-medium">2× klepnite na klávesnicu → zadajte kód → stlačte ikonu zámku na otvorenie</p>
             </div>
             <div className="flex items-center justify-center text-green-400 text-sm font-black gap-2">
               <ShieldCheck className="w-4 h-4" />
