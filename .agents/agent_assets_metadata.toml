@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "0mDvo2VigBSMQ00eiFhog"
+uri = "file://attached_assets/stock_images/table_tennis.jpg"
+type = "image"
+title = "table tennis ping pong match action shot with paddle and ball on blue table"
