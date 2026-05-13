@@ -1,4 +1,4 @@
-import { facilities, bookings, users } from "@shared/schema";
+import { facilities, bookings, users, shellySettings } from "@shared/schema";
 import type { InsertFacility, InsertBooking, Facility, Booking } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
