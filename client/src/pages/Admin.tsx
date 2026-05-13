@@ -13,10 +13,10 @@ const ZONES = [
 ];
 
 const KNOWN_DEVICES: Record<string, { ip: string; id: string }> = {
-  'Svetlo hala': { ip: '192.168.0.160', id: 'e4b0636a5bc8' },
-  'Hala2':       { ip: '192.168.0.161', id: 'e4b063740efc' },
-  'Hala3':       { ip: '192.168.0.163', id: 'e4b06375cb3c' },
-  'Bar bar':     { ip: '192.168.0.164', id: 'e4b063787f7c' },
+  'Svetlo hala': { ip: '192.168.0.124', id: 'e4b0636a5bc8' },
+  'Hala2':       { ip: '192.168.0.107', id: 'e4b063740efc' },
+  'Hala3':       { ip: '192.168.0.103', id: 'e4b06375cb3c' },
+  'Bar bar':     { ip: '192.168.0.104', id: 'e4b063787f7c' },
 };
 
 export default function Admin() {
