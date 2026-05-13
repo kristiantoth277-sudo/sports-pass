@@ -33,8 +33,8 @@ export default function MyBookings() {
   return (
     <div className="flex-1 py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
       <div className="mb-10">
-        <h1 className="text-4xl font-display font-black text-white tracking-tight">My Bookings</h1>
-        <p className="text-muted-foreground mt-2 text-lg">Manage your upcoming matches and view past sessions.</p>
+        <h1 className="text-4xl font-display font-black text-white tracking-tight">Moje rezervácie</h1>
+        <p className="text-muted-foreground mt-2 text-lg">Spravujte vaše nadchádzajúce rezervácie a pozrite si históriu.</p>
       </div>
 
       {isLoading ? (
