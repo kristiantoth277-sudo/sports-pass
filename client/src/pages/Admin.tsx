@@ -33,16 +33,22 @@ export default function Admin() {
   const queryClient = useQueryClient();
 
   const { data: bookings, isLoading } = useQuery({
-    queryKey: ["/api/admin/bookings"],
+    queryKey: ["/api/admin/bookings", password],
     enabled: isLoggedIn,
-    headers: { "x-admin-password": password }
-  } as any);
+    queryFn: async () => {
+      const res = await fetch("/api/admin/bookings", { headers: { "x-admin-password": password } });
+      return res.json();
+    }
+  });
 
   const { data: shellySettings, refetch: refetchSettings } = useQuery({
-    queryKey: ["/api/admin/shelly/settings"],
+    queryKey: ["/api/admin/shelly/settings", password],
     enabled: isLoggedIn,
-    headers: { "x-admin-password": password }
-  } as any);
+    queryFn: async () => {
+      const res = await fetch("/api/admin/shelly/settings", { headers: { "x-admin-password": password } });
+      return res.json();
+    }
+  });
 
   const { data: shellyStatus, isLoading: statusLoading, refetch: refetchStatus } = useQuery({
     queryKey: ["/api/admin/shelly/status"],
