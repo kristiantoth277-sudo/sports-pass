@@ -191,7 +191,7 @@ export async function registerRoutes(
         startTime: new Date(newBooking.startTime),
         endTime: new Date(newBooking.endTime),
         totalPrice: newBooking.totalPrice,
-        userName: `${userClaims?.firstName ?? ""} ${userClaims?.lastName ?? ""}`.trim() || userClaims?.email ?? undefined,
+        userName: (`${userClaims?.firstName ?? ""} ${userClaims?.lastName ?? ""}`.trim()) || (userClaims?.email ?? undefined),
         userEmail: userClaims?.email ?? undefined,
       }).catch(err => console.error("[Email] notification failed:", err));
 
