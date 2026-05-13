@@ -53,7 +53,7 @@ export default function Admin() {
   const { data: shellyStatus, isLoading: statusLoading, refetch: refetchStatus } = useQuery({
     queryKey: ["/api/admin/shelly/status", password],
     enabled: isLoggedIn && activeTab === 'shelly',
-    refetchInterval: 15000,
+    refetchInterval: 60000,
     queryFn: async () => {
       const res = await fetch("/api/admin/shelly/status", { headers: { "x-admin-password": password } });
       return res.json();
@@ -210,7 +210,7 @@ export default function Admin() {
       }
     };
     poll();
-    const interval = setInterval(poll, 10000);
+    const interval = setInterval(poll, 60000);
     return () => clearInterval(interval);
   }, [isLoggedIn, activeTab]);
 

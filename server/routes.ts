@@ -527,14 +527,18 @@ export async function registerRoutes(
       if (!authKey) return { ok: false, error: 'No auth key' };
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 6000);
-      const body = new URLSearchParams({
-        auth_key: authKey,
-        id: deviceId,
-        src: 'zaramia-admin',
-        method,
-        params: JSON.stringify(params),
-      });
-      const r = await fetch(`https://${server}/device/rpc`, {
+      const isOn = method === 'Switch.Set' ? params.on : undefined;
+      const isStatus = method === 'Switch.GetStatus';
+      let url: string;
+      let body: URLSearchParams;
+      if (isStatus) {
+        url = `https://${server}/device/status`;
+        body = new URLSearchParams({ auth_key: authKey, id: deviceId });
+      } else {
+        url = `https://${server}/device/relay/control`;
+        body = new URLSearchParams({ auth_key: authKey, id: deviceId, channel: '0', turn: isOn ? 'on' : 'off' });
+      }
+      const r = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: body.toString(),
@@ -542,7 +546,11 @@ export async function registerRoutes(
       });
       clearTimeout(timeout);
       const data = await r.json();
-      console.log("Shelly Cloud response:", JSON.stringify(data)); if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
+      if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
+      if (isStatus) {
+        const ison = data.data?.device_status?.switch?.['0']?.output ?? data.data?.relays?.[0]?.ison;
+        return { ok: true, data: { output: ison } };
+      }
       return { ok: true, data: data.data };
     } catch (err: any) {
       return { ok: false, error: err.message || 'Nedostupné' };
