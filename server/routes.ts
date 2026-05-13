@@ -397,17 +397,17 @@ export async function registerRoutes(
   });
 
   // Admin routes
-  app.get("/api/admin/bookings", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/bookings", isAdmin, async (req, res) => {
     const allBookings = await storage.getAllBookings();
     res.json(allBookings);
   });
 
-  app.get("/api/admin/shelly/settings", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/shelly/settings", isAdmin, async (req, res) => {
     const settings = await storage.getShellySettings();
     res.json(settings);
   });
 
-  app.post("/api/admin/shelly/settings", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/admin/shelly/settings", isAdmin, async (req, res) => {
     const { key, value } = req.body;
     await storage.updateShellySetting(key, value);
     res.json({ success: true });
@@ -470,7 +470,7 @@ export async function registerRoutes(
     }
   });
 
-  app.post("/api/admin/bookings/:id/mark-paid", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/admin/bookings/:id/mark-paid", isAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ message: "Neplatné ID rezervácie" });
     const bookingWithFacility = await storage.getBooking(id);
@@ -549,7 +549,7 @@ export async function registerRoutes(
     }
   }
 
-  app.post("/api/admin/shelly/control", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/admin/shelly/control", isAdmin, async (req, res) => {
     const { zone, action } = req.body;
     if (!zone || !['on', 'off'].includes(action)) {
       return res.status(400).json({ message: "Neplatné parametre" });
@@ -582,7 +582,7 @@ export async function registerRoutes(
     res.json({ success: true, message: `Zóna "${zone}" bola ${on ? 'zapnutá' : 'vypnutá'} (Lokálne)` });
   });
 
-  app.get("/api/admin/shelly/status", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/shelly/status", isAdmin, async (req, res) => {
     const settings = await storage.getShellySettings();
     const zones = ['Svetlo hala', 'Hala2', 'Hala3', 'Bar bar'];
     const getSetting = (k: string) => settings.find((s: any) => s.key === k)?.value || '';
@@ -610,7 +610,7 @@ export async function registerRoutes(
   });
 
   // Discover Shelly Cloud devices
-  app.get("/api/admin/shelly/discover", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/admin/shelly/discover", isAdmin, async (req, res) => {
     const authKey = process.env.SHELLY_CLOUD_AUTH_KEY || '';
     if (!authKey) return res.status(400).json({ message: "SHELLY_CLOUD_AUTH_KEY nie je nastavený" });
 
