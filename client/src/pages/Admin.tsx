@@ -51,11 +51,14 @@ export default function Admin() {
   });
 
   const { data: shellyStatus, isLoading: statusLoading, refetch: refetchStatus } = useQuery({
-    queryKey: ["/api/admin/shelly/status"],
+    queryKey: ["/api/admin/shelly/status", password],
     enabled: isLoggedIn && activeTab === 'shelly',
     refetchInterval: 15000,
-    headers: { "x-admin-password": password }
-  } as any);
+    queryFn: async () => {
+      const res = await fetch("/api/admin/shelly/status", { headers: { "x-admin-password": password } });
+      return res.json();
+    }
+  });
 
   useEffect(() => {
     // Start with known device defaults
