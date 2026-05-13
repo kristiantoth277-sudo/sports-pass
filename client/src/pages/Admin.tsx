@@ -165,22 +165,7 @@ export default function Admin() {
   const controlShelly = useMutation({
     mutationFn: async ({ zone, action }: { zone: string; action: string }) => {
       const known = KNOWN_DEVICES[zone];
-      if (known?.ip) {
-        try {
-          const on = action === 'on';
-          const r = await fetch(`https://${known.ip}/rpc/Switch.Set?id=0&on=${on}`, {
-            signal: AbortSignal.timeout(4000),
-          });
-          if (r.ok) {
-            const d = await r.json();
-            setLocalStatuses(prev => ({ ...prev, [zone]: d.output ? 'on' : 'off' }));
-            return { message: `${zone} → ${on ? 'ZAP' : 'VYP'} (lokálne)` };
-          }
-        } catch {
-          // fall through to server-side
-        }
-      }
-      // Server-side fallback
+      // Server-side control
       const res = await fetch("/api/admin/shelly/control", {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-password": password },
@@ -207,8 +192,8 @@ export default function Admin() {
         const known = KNOWN_DEVICES[zone.label];
         if (!known?.ip) continue;
         try {
-          const r = await fetch(`https://${known.ip}/rpc/Switch.GetStatus?id=0`, {
-            signal: AbortSignal.timeout(3000),
+          const r = await fetch(`/api/admin/shelly/status/${encodeURIComponent(zone.label)}`, {
+            headers: { "x-admin-password": password }
           });
           if (r.ok) {
             const d = await r.json();
