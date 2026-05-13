@@ -486,10 +486,10 @@ export async function registerRoutes(
 
   // Known device data (Shelly 1 PM Mini Gen 4) — seeded from device info screenshots
   const KNOWN_DEVICES: Record<string, { ip: string; id: string }> = {
-    'Svetlo hala': { ip: '192.168.0.160', id: 'e4b0636a5bc8' },
-    'Hala2':       { ip: '192.168.0.161', id: 'e4b063740efc' },
-    'Hala3':       { ip: '192.168.0.163', id: 'e4b06375cb3c' },
-    'Bar bar':     { ip: '192.168.0.164', id: 'e4b063787f7c' },
+    'Svetlo hala': { ip: '192.168.0.124', id: 'e4b0636a5bc8' },
+    'Hala2':       { ip: '192.168.0.107', id: 'e4b063740efc' },
+    'Hala3':       { ip: '192.168.0.103', id: 'e4b06375cb3c' },
+    'Bar bar':     { ip: '192.168.0.104', id: 'e4b063787f7c' },
   };
 
   // Helper: zone name → settings key
@@ -542,7 +542,7 @@ export async function registerRoutes(
       });
       clearTimeout(timeout);
       const data = await r.json();
-      if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
+      console.log("Shelly Cloud response:", JSON.stringify(data)); if (!data.isok) return { ok: false, error: JSON.stringify(data.errors || data) };
       return { ok: true, data: data.data };
     } catch (err: any) {
       return { ok: false, error: err.message || 'Nedostupné' };
