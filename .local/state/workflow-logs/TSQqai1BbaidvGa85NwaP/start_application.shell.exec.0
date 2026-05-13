@@ -1,0 +1,83 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[images] Searching in: [
+  [32m'/home/runner/workspace/dist/public/images'[39m,
+  [32m'/home/runner/workspace/client/public/images'[39m
+]
+Facilities synced.
+10:22:32 AM [express] serving on port 5000
+10:22:37 AM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+10:22:37 AM [express] GET /api/facilities 304 in 3ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+10:22:37 AM [express] GET /api/facilities/badminton-available 304 in 17ms :: {"available":true}
+10:23:38 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:24:39 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:25:40 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:26:40 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:27:41 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:28:42 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+10:29:43 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:30:44 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:31:45 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:32:46 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:33:47 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:34:48 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:35:48 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:36:49 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:37:50 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:38:51 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:39:52 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:40:53 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:41:53 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:42:54 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:43:55 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:44:56 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+10:45:57 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+10:46:58 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+10:47:59 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:05:51 AM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+11:05:51 AM [express] GET /api/facilities 304 in 11ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+11:05:51 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:18:45 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+tar -czf projekt.tar.gz .
+11:19:46 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:20:46 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:21:47 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:22:48 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:23:49 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:24:50 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:25:50 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:26:51 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:27:52 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:28:53 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:29:54 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:30:55 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:31:55 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:32:56 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:33:57 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:34:58 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:35:59 AM [express] GET /api/facilities/badminton-available 304 in 16ms :: {"available":true}
+11:36:59 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+11:38:00 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+11:39:01 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:40:02 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:41:03 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:42:04 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+11:43:04 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:44:05 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:45:06 AM [express] GET /api/facilities/badminton-available 304 in 11ms :: {"available":true}
+11:46:07 AM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+11:47:08 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+11:48:08 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+11:56:42 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+12:17:15 PM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+12:17:15 PM [express] GET /api/facilities 304 in 14ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+12:17:15 PM [express] GET /api/facilities/badminton-available 304 in 14ms :: {"available":true}
+6:08:40 PM [express] GET /api/auth/user 401 in 0ms :: {"message":"Unauthorized"}
+6:08:40 PM [express] GET /api/facilities 304 in 11ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+6:08:40 PM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+6:56:50 PM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+6:56:57 PM [express] GET /api/facilities/badminton-available 304 in 2ms :: {"available":true}
+6:56:57 PM [express] GET /api/auth/user 401 in 0ms :: {"message":"Unauthorized"}
+6:56:57 PM [express] GET /api/facilities 200 in 1ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]

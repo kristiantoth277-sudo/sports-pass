@@ -1,0 +1,162 @@
+
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K[images] Searching in: [
+  [32m'/home/runner/workspace/dist/public/images'[39m,
+  [32m'/home/runner/workspace/client/public/images'[39m
+]
+Facilities synced.
+8:32:56 AM [express] serving on port 5000
+8:33:01 AM [express] GET /api/auth/user 401 in 2ms :: {"message":"Unauthorized"}
+8:33:01 AM [express] GET /api/facilities 304 in 4ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/stolny-tenis.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+8:33:01 AM [express] GET /api/facilities/badminton-available 304 in 16ms :: {"available":true}
+8:33:43 AM [express] GET /api/auth/user 401 in 0ms :: {"message":"Unauthorized"}
+8:33:43 AM [express] GET /api/facilities 200 in 12ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/stolny-tenis.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+8:33:43 AM [express] GET /api/facilities/badminton-available 200 in 14ms :: {"available":true}
+8:34:02 AM [express] GET /api/facilities/badminton-available 304 in 15ms :: {"available":true}
+8:35:03 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+8:36:04 AM [express] GET /api/facilities/badminton-available 304 in 42ms :: {"available":true}
+8:37:05 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+8:45:55 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+8:52:57 AM [express] GET /api/facilities/badminton-available 304 in 13ms :: {"available":true}
+8:53:58 AM [express] GET /api/facilities/badminton-available 304 in 12ms :: {"available":true}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:55:59 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Admin.tsx, /src/index.css[22m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:56:36 AM[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [32mhmr update [39m[2m/src/pages/Admin.tsx, /src/index.css[22m [33m(x2)[39m
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+[1;1H[0J[2m8:56:37 AM[22m [31m[1m[vite][22m[39m [31mInternal server error: Transform failed with 1 error:
+/home/runner/workspace/client/src/pages/Admin.tsx:455:21: ERROR: The character "}" is not valid inside a JSX element[39m
+  Plugin: [35mvite:esbuild[39m
+  File: [36m/home/runner/workspace/client/src/pages/Admin.tsx[39m:436:0
+[33m  
+  [33mThe character "}" is not valid inside a JSX element[33m
+  453 |                          </button>
+  454 |                        </div>
+  455 |                      )}
+      |                       ^
+  456 |                    </div>);
+  457 |  
+  [39m
+      at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1467:15)
+      at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:736:50
+      at responseCallbacks.<computed> (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:603:9)
+      at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:658:12)
+      at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:581:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+[1G[0K⠙[1G[0K[1mnpm[22m [96mnotice[39m
+[1mnpm[22m [96mnotice[39m New [31mmajor[39m version of npm available! [31m10.8.2[39m -> [34m11.12.1[39m
+[1mnpm[22m [96mnotice[39m Changelog: [34mhttps://github.com/npm/cli/releases/tag/v11.12.1[39m
+[1mnpm[22m [96mnotice[39m To update run: [4mnpm install -g npm@11.12.1[24m
+[1mnpm[22m [96mnotice[39m
+[1G[0K⠙[1G[0K

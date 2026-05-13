@@ -1,0 +1,18 @@
+[1G[0K⠙[1G[0K
+> rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+[1G[0K⠙[1G[0K[images] Searching in: [
+  [32m'/home/runner/workspace/dist/public/images'[39m,
+  [32m'/home/runner/workspace/client/public/images'[39m
+]
+Facilities synced.
+9:15:13 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+9:15:19 AM [express] GET /api/facilities 200 in 4ms :: [{"id":1,"name":"Badminton – Kurt 1","description":"Profesionálny bedmintonový kurt č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"1","isComingSoon":false},{"id":2,"name":"Badminton – Kurt 2","description":"Profesionálny bedmintonový kurt č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"2","isComingSoon":false},{"id":3,"name":"Badminton – Kurt 3","description":"Profesionálny bedmintonový kurt č. 3 v Zaramia Sport & Fun.","imageUrl":"/images/badminton.jpg","pricePerHour":1250,"sportType":"badminton","courtNumber":"3","isComingSoon":false},{"id":4,"name":"Bowling – Dráha 1","description":"Moderná bowlingová dráha č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"1","isComingSoon":false},{"id":5,"name":"Bowling – Dráha 2","description":"Moderná bowlingová dráha č. 2 v Zaramia Sport & Fun.","imageUrl":"/images/bowling.jpg","pricePerHour":1250,"sportType":"bowling","courtNumber":"2","isComingSoon":false},{"id":6,"name":"Stolný tenis – Stôl 1","description":"Kvalitný stôl na stolný tenis č. 1 v Zaramia Sport & Fun.","imageUrl":"/images/table-tennis-new.jpg","pricePerHour":1000,"sportType":"table_tennis","courtNumber":"1","isComingSoon":false},{"id":7,"name":"VR Zóna – Meta Quest 3","description":"Vstúpte do sveta virtuálnej reality s najnovšími okuliarmi Meta Quest 3. K dispozícii máme 2 súpravy pre nezabudnuteľný zážitok.","imageUrl":"https://images.unsplash.com/photo-1622979135225-d2ba269cf1ac?auto=format&fit=crop&q=80&w=800","pricePerHour":1000,"sportType":"vr","courtNumber":"1","isComingSoon":false}]
+9:15:19 AM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+9:15:19 AM [express] GET /api/facilities/badminton-available 200 in 16ms :: {"available":true}
+9:16:20 AM [express] GET /api/facilities/badminton-available 304 in 19ms :: {"available":true}
+9:17:21 AM [express] GET /api/facilities/badminton-available 304 in 19ms :: {"available":true}
