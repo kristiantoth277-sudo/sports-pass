@@ -145,7 +145,7 @@ export default function Home() {
                 }}
               >
                 <img
-                  src="/images/zaramia_pizza1.jpg"
+                  src="/images/pizza.jpg"
                   alt="Menu"
                   className="absolute inset-0 w-full h-full object-cover opacity-40 group-hover:opacity-60 group-hover:scale-110 transition-all duration-700"
                 />
