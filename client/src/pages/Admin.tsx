@@ -755,3 +755,4 @@ function LocalStatusBadge({ status }: { status?: 'on' | 'off' | 'offline' | 'unk
 function cn(...classes: any[]) {
   return classes.filter(Boolean).join(' ');
 }
+// st 13. mája 2026 14:58:23 CEST
