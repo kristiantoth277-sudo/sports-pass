@@ -339,31 +339,31 @@ export default function Admin() {
                   {isLoading ? (
                     <tr><td colSpan={6} className="py-20 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-red-600" /></td></tr>
                   ) : filteredBookings?.map((b: any) => (
-                    <tr key={b.id} data-testid={`row-booking-${b.id}`} className="group">
+                    <tr key={b.booking.id} data-testid={`row-booking-${b.booking.id}`} className="group">
                       <td className="py-5">
                         <div className="font-bold text-white uppercase text-xs tracking-wide">{b.user?.firstName}</div>
                         <div className="text-[10px] text-gray-500 font-bold">{b.user?.email}</div>
                       </td>
                       <td className="py-5 font-bold text-white uppercase text-xs tracking-wide">{b.facility?.name}</td>
                       <td className="py-5">
-                        <div className="text-white font-bold text-xs">{format(new Date(b.startTime), "d. MMMM yyyy", { locale: sk })}</div>
-                        <div className="text-gray-500 text-[10px] font-black">{format(new Date(b.startTime), "HH:mm")} – {format(new Date(b.endTime), "HH:mm")}</div>
+                        <div className="text-white font-bold text-xs">{format(new Date(b.booking.startTime), "d. MMMM yyyy", { locale: sk })}</div>
+                        <div className="text-gray-500 text-[10px] font-black">{format(new Date(b.booking.startTime), "HH:mm")} – {format(new Date(b.booking.endTime), "HH:mm")}</div>
                       </td>
                       <td className="py-5">
                         <span className={cn(
                           "px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border",
-                          b.status === 'paid' ? "bg-green-600/10 text-green-500 border-green-600/20" : "bg-red-600/10 text-red-500 border-red-600/20"
+                          b.booking.status === 'paid' ? "bg-green-600/10 text-green-500 border-green-600/20" : "bg-red-600/10 text-red-500 border-red-600/20"
                         )}>
-                          {b.status === 'paid' ? 'ZAPLATENÉ' : 'REZERVOVANÉ'}
+                          {b.booking.status === 'paid' ? 'ZAPLATENÉ' : 'REZERVOVANÉ'}
                         </span>
                       </td>
-                      <td className="py-5 text-right font-black text-white">{(b.totalPrice / 100).toFixed(2)} €</td>
+                      <td className="py-5 text-right font-black text-white">{(b.booking.totalPrice / 100).toFixed(2)} €</td>
                       <td className="py-5 text-right">
-                        {b.status !== 'paid' && (
+                        {b.booking.status !== 'paid' && (
                           <button
-                            onClick={() => markPaid.mutate(b.id)}
+                            onClick={() => markPaid.mutate(b.booking.id)}
                             disabled={markPaid.isPending}
-                            data-testid={`button-mark-paid-${b.id}`}
+                            data-testid={`button-mark-paid-${b.booking.id}`}
                             className="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-green-600/10 text-green-500 border border-green-600/20 hover:bg-green-600 hover:text-white transition-all flex items-center gap-1 ml-auto"
                           >
                             <CreditCard className="w-3 h-3" /> Označiť zaplatené
