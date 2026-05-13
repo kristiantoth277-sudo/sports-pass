@@ -121,7 +121,7 @@ export async function registerRoutes(
 
   // Bookings
   app.get(api.bookings.list.path, isAuthenticated, async (req: any, res) => {
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     const userBookings = await storage.getBookingsByUserId(userId);
     const flattenedBookings = userBookings.map(b => ({
       ...b.booking,
@@ -141,7 +141,7 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Rezervácia sa nenašla" });
     }
 
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     if (bookingWithFacility.booking.userId !== userId) {
       return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
@@ -155,7 +155,7 @@ export async function registerRoutes(
   app.post(api.bookings.create.path, isAuthenticated, async (req: any, res) => {
     try {
       const parsedBody = api.bookings.create.input.parse(req.body);
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
 
       // For bowling and table tennis: require at least one free badminton court
       const facility = await storage.getFacility(parsedBody.facilityId);
@@ -183,7 +183,7 @@ export async function registerRoutes(
       });
 
       // Send email notification (non-blocking)
-      const userClaims = (req as any).user?.claims;
+      const userClaims = (req as any).user;
       sendBookingNotification({
         id: newBooking.id,
         facilityName: facility?.name ?? `Zariadenie #${parsedBody.facilityId}`,
@@ -191,7 +191,7 @@ export async function registerRoutes(
         startTime: new Date(newBooking.startTime),
         endTime: new Date(newBooking.endTime),
         totalPrice: newBooking.totalPrice,
-        userName: userClaims?.name ?? userClaims?.email ?? undefined,
+        userName: `${userClaims?.firstName ?? ""} ${userClaims?.lastName ?? ""}`.trim() || userClaims?.email ?? undefined,
         userEmail: userClaims?.email ?? undefined,
       }).catch(err => console.error("[Email] notification failed:", err));
 
@@ -215,7 +215,7 @@ export async function registerRoutes(
     const bookingWithFacility = await storage.getBooking(id);
     if (!bookingWithFacility?.booking) return res.status(404).json({ message: "Rezervácia sa nenašla" });
 
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     if (bookingWithFacility.booking.userId !== userId) {
       return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
@@ -229,7 +229,7 @@ export async function registerRoutes(
 
     try {
       const token = await getBesteronGateToken();
-      const userClaims = req.user.claims;
+      const userClaims = req.user;
 
       const payload = {
         totalAmount: booking.totalPrice,
@@ -298,7 +298,7 @@ export async function registerRoutes(
     const bookingWithFacility = await storage.getBooking(id);
     if (!bookingWithFacility?.booking) return res.status(404).json({ message: "Rezervácia sa nenašla" });
 
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     if (bookingWithFacility.booking.userId !== userId) {
       return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
@@ -377,7 +377,7 @@ export async function registerRoutes(
       return res.status(404).json({ message: "Rezervácia sa nenašla" });
     }
 
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     if (bookingWithFacility.booking.userId !== userId) {
       return res.status(401).json({ message: "Neautorizovaný prístup k rezervácii" });
     }
